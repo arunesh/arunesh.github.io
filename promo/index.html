@@ -1,0 +1,143 @@
+<!DOCTYPE HTML>
+<!--
+	Tessellate by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Neo -- Next-generation Assistant for Android</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+        <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
+        <style>
+        .hide-robot{
+            display:none;
+            visibility:hidden;
+        }
+        </style>
+    </head>
+	<body>
+		<!-- First -->
+			<section id="first" class="main">
+				<header>
+					<div class="container">
+						<h2>Please provide an Email address to get an invitation !</h2>
+						<p>We take privacy seriously and will not share or use your email address for any other purpose.</p>
+                    </div>
+                    <div class="content style4 featured">
+                        <div class="container 75%">
+                            <form method="get" id="formEmail">
+                                <div class="row">
+                                    <div class="12u">
+                                        <input name="name" type="text" id="name" class="hide-robot">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="6u">
+                                        <input type="text" placeholder="Enter your Email" id="email" name = "Email"/>
+                                    </div>
+                                    <div class="6u">
+                                        <input class="button" type="submit" value="Request Invite" />
+                                        <p id="result"></p>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+				</header>
+			</section>
+
+		<!-- Footer -->
+			<section id="footer">
+				<div class="copyright">
+					<ul class="menu">
+						<li>&copy; Incept AI Inc. All rights reserved.</li>
+					</ul>
+				</div>
+			</section>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/skel.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+			<script src="assets/js/main.js"></script>
+<script data-cfasync="false" type="text/javascript">
+
+function validEmail(email) { // see:
+      var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
+        return re.test(email);
+}
+
+function isRobot() {
+    console.log("name = " + $('#name').value);
+    return ! $('#name').value && $('#name').value !== undefined; 
+}
+
+jQuery( document ).ready(function( $ ) {
+	// variable to hold request
+	var request;
+
+	// bind to the submit event of our form
+	$("#formEmail").submit(function(event){
+
+        console.log('within submit');
+		// abort any pending request
+
+        if (isRobot()) {
+            alert("ROBOT");
+            return;
+        }
+
+        if (request) {
+            request.abort();
+        }
+
+        if (!validEmail(document.getElementById('email').value)) {
+            alert("Please enter a valid Email to receive an Invite !");
+            return;
+        }
+
+		// setup some local variables
+		var $form = $(this);
+
+		// let's select and cache all the fields
+		var $inputs = $form.find("input, select, button, textarea");
+
+		// serialize the data in the form
+		var serializedData = $form.serialize();
+        console.log('data=' + serializedData);
+
+		// let's disable the inputs for the duration of the ajax request
+
+		// Note: we disable elements AFTER the form data has been serialized.
+
+		// Disabled form elements will not be serialized.
+
+		$inputs.prop("disabled", true);
+		$('#result').text('Sending data...');
+
+
+        var url2 = "https://script.google.com/a/obiai.tech/macros/s/AKfycbzn5K9XKVfXLRlXlXEpk6ceZG3VQ4u1ASkc_9dBC6U8n-wEh2qE/exec?" + serializedData + "&" + "prefix=alert&callback=emailSaved";
+        var my_script = document.createElement('script');
+        my_script.setAttribute('src', url2);
+        document.head.appendChild(my_script);
+
+	});
+
+});
+
+function emailSaved() {
+			$('#result').html('Success - Thank you !');
+			console.log("Hooray, it worked!");
+            alert("Thank you ! You will receive an invite when the App is ready.");
+}
+        </script>
+	</body>
+</html>

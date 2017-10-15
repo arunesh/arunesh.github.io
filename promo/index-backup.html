@@ -1,0 +1,203 @@
+<!DOCTYPE HTML>
+<!--
+	Tessellate by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Neo -- Next-generation Assistant for Android</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+		<!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
+	</head>
+	<body>
+		<!-- Header -->
+           <section id="header" class="dark">
+               <header>
+					<h1>Introducing Neo</h1>
+                    <br>
+                    <p>Your next-generation Assistant for Android</p>
+                    <br>
+                    <br>
+				</header>
+
+                <div class="content style4 featured">
+					<div class="container 75%">
+                        <form method="get" id="formEmail">
+							<div class="row">
+								<div class="6u">
+                                      <input type="text" placeholder="Email" id="email" name = "Email"/>
+                                </div>
+								<div class="6u">
+									  <input class="button" type="submit" value="Request Invite" />
+                                      <p id="result"></p>
+                                </div>
+								</div>
+							</div>
+						</form>
+
+					</div>
+				</div>
+
+                <footer>
+					<a href="#first" class="button scrolly">Learn more</a>
+				</footer>
+			</section>
+
+		<!-- First -->
+			<section id="first" class="main">
+				<header>
+					<div class="container">
+						<h2>Neo is built by trusted ex-Google, ex-Android and Silicon Valley Engineers.</h2>
+						<p>Neo can fix frustrating problems on Android. It can fix issues with Wifi, Bluetooth or other features on
+                        the phone.<br/> It can also fix issues such as privacy, notification settings or more within popular Apps<br />
+						such as Facebook, Twitter, Youtube, etc.</p>
+					</div>
+				</header>
+				<div class="content dark style1 featured">
+					<div class="container">
+						<div class="row">
+							<div class="4u 12u(narrow)">
+								<section>
+                                    <!--
+                                    <span class="feature-icon"><span class="icon fa-clock-o"></span></span> -->
+									<header>
+										<h3>AI-based problem solving</h3>
+									</header>
+									<p>Neo uses recent advances in Artificial Intelligence to come up with a solution
+                                    for any technical problem on Android.</p>
+								</section>
+							</div>
+							<div class="4u 12u(narrow)">
+								<section>
+                                    <!--
+                                    <span class="feature-icon"><span class="icon fa-bolt"></span></span> -->
+									<header>
+										<h3>Learns from Human Experts</h3>
+									</header>
+									<p>Neo can learn from human experts in the field. When a new issue comes up, such as
+                                    with a software update, Neo can quickly learn and make the solution available to other users
+                                    almost immediately.</p>
+								</section>
+							</div>
+							<div class="4u 12u(narrow)">
+								<section>
+                                    <!--
+                                    <span class="feature-icon"><span class="icon fa-cloud"></span></span> -->
+									<header>
+										<h3>Fast and Trusted</h3>
+									</header>
+									<p>Neo is light-weight and fast. Neo does not have any ads or bloatware. It does not collect any
+                                    personally identifiable information.</p>
+								</section>
+							</div>
+						</div>
+						<div class="row">
+							<div class="12u">
+								<footer>
+									<a href="#fourth" class="button scrolly">Get an invite !</a>
+								</footer>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+	<!-- Fourth -->
+			<section id="fourth" class="main">
+				<header>
+					<div class="container">
+						<h2>Limited number of invitations are available !</h2>
+						<p>Please provide your email for the invitation link. This invitation lets you use Neo for free (no-ads) for the lifetime of the phone. You will also receive unlimited customer service for any issues with the app.<br />
+						</p>
+					</div>
+				</header>
+				<div class="content style4 featured">
+					<div class="container 75%">
+                        <form method="get" id="formEmail">
+							<div class="row">
+								<div class="6u">
+                                      <input type="text" placeholder="Email" id="email" name = "Email"/>
+                                </div>
+								<div class="6u">
+									  <input class="button" type="submit" value="Request Invite" />
+                                      <p id="result"></p>
+                                </div>
+								</div>
+							</div>
+						</form>
+
+					</div>
+				</div>
+			</section>
+
+		<!-- Footer -->
+			<section id="footer">
+				<div class="copyright">
+					<ul class="menu">
+						<li>&copy; Incept AI Inc. All rights reserved.</li>
+					</ul>
+				</div>
+			</section>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/skel.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+			<script src="assets/js/main.js"></script>
+<script data-cfasync="false" type="text/javascript">
+jQuery( document ).ready(function( $ ) {
+	// variable to hold request
+	var request;
+	// bind to the submit event of our form
+	$("#formEmail").submit(function(event){
+
+        console.log('within submit');
+		// abort any pending request
+
+		if (request) {
+			request.abort();
+		}
+
+		// setup some local variables
+		var $form = $(this);
+
+		// let's select and cache all the fields
+		var $inputs = $form.find("input, select, button, textarea");
+
+		// serialize the data in the form
+		var serializedData = $form.serialize();
+        console.log('data=' + serializedData);
+
+		// let's disable the inputs for the duration of the ajax request
+
+		// Note: we disable elements AFTER the form data has been serialized.
+
+		// Disabled form elements will not be serialized.
+
+		$inputs.prop("disabled", true);
+		$('#result').text('Sending data...');
+
+
+        var url2 = "https://script.google.com/a/obiai.tech/macros/s/AKfycbzn5K9XKVfXLRlXlXEpk6ceZG3VQ4u1ASkc_9dBC6U8n-wEh2qE/exec?" + serializedData + "&" + "prefix=alert&callback=emailSaved";
+        var my_script = document.createElement('script');
+        my_script.setAttribute('src', url2);
+        document.head.appendChild(my_script);
+
+	});
+
+});
+
+function emailSaved() {
+			$('#result').html('Success - Thank you !');
+			console.log("Hooray, it worked!");
+}
+        </script>
+	</body>
+</html>
