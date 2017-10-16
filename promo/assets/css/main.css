@@ -2007,6 +2007,8 @@
 		background-size: auto, cover;
 		background-position: top left, center center;
 		background-repeat: repeat, no-repeat;
+        background-color: black;
+
 		padding: 14em 0 14em 0;
 		text-align: center;
 		color: #fff;
