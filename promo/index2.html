@@ -98,10 +98,17 @@ function isRobot() {
     return ! $('#name').value && $('#name').value !== undefined; 
 }
 
+var currentIndex = 0;
+
+var messageList = ["Message One",
+    "Message Two",
+    "Message Three",
+    "Message Four",
+    "Message Five"];
+
 function updateMessages() {
     var anim = document.getElementById('anim');
-    anim.currentIndex =  ( anim.currentIndex + 1 ) % anim.messageList.length;
-    var currentIndex = anim.currentIndex;
+    currentIndex =  ( currentIndex + 1 ) % messageList.length;
     console.log('currentIndex = ' + currentIndex);
     console.log('message = ' + messageList[currentIndex]);
     // $('#anim').fadeToggle();
@@ -113,14 +120,7 @@ jQuery( document ).ready(function( $ ) {
 	// variable to hold request
 	var request;
 
-    $('#anim').currentIndex = 0;
-
-    $('#anim').messageList = ["Message One",
-    "Message Two",
-    "Message Three",
-    "Message Four",
-    "Message Five"];
-
+  
 
     setInterval(updateMessages, 2000);
 
