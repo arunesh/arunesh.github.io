@@ -2004,7 +2004,7 @@
 		position: relative;
 		margin: 0;
 		background-image: url("images/overlay.png"), url("../../images/header.jpg");
-		background-size: auto, cover;
+		background-size: auto, auto 60%;
 		background-position: top left, center center;
 		background-repeat: repeat, no-repeat;
 		padding: 14em 0 14em 0;
