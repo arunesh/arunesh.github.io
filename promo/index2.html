@@ -105,6 +105,7 @@ jQuery( document ).ready(function( $ ) {
 	// bind to the submit event of our form
 	$("#formEmail").submit(function(event){
 
+        event.preventDefault();
         console.log('within submit');
 		// abort any pending request
 
