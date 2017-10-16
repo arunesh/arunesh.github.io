@@ -21,30 +21,14 @@
         </style>
     </head>
 	<body>
-		<!-- Header -->
-           <section id="header" class="dark">
-               <header>
-					<h1>Introducing Neo</h1>
-                    <br>
-                    <p id="anim" >Your next-generation Assistant for Android</p>
-                    <br>
-				</header>
-
-                <footer>
-					<a href="more.html" class="button scrolly">Learn more</a>
-				</footer>
-			</section>
-
 		<!-- First -->
 			<section id="first" class="main">
 				<header>
-                    <!--
 					<div class="container">
-                    </div>
-                    -->
-                    <div class="content style4 featured">
 						<h4>Please provide an Email address to get an invitation !</h4>
-                        <div class="container 90%">
+                    </div>
+                    <div class="content style4 featured">
+                        <div class="container 75%">
                             <form method="get" id="formEmail">
                                 <div class="row">
                                     <div class="12u">
@@ -98,38 +82,13 @@ function isRobot() {
     return ! $('#name').value && $('#name').value !== undefined; 
 }
 
-var currentIndex = 0;
-
-var messageList = [
-    "From ex-Google and Android Engineers.",
-    "Uses AI to solve problems with your phone.",
-    "Fixes any Wifi, Bluetooth or Cellular issues.",
-    "Fixes your phone if it is too slow.",
-    "Makes your battery last an entire day.",
-    "The Assistant that every Android phone needs."];
-
-function updateMessages() {
-    var anim = document.getElementById('anim');
-    currentIndex =  ( currentIndex + 1 ) % messageList.length;
-    console.log('currentIndex = ' + currentIndex);
-    console.log('message = ' + messageList[currentIndex]);
-    $('#anim').fadeOut("fast", function () {
-        anim.innerHTML = messageList[currentIndex];
-        $('#anim').fadeIn("slow");
-    });
-    // $('#anim').fadeToggle();
-}
-
 jQuery( document ).ready(function( $ ) {
 	// variable to hold request
 	var request;
 
-    setInterval(updateMessages, 3000);
-
 	// bind to the submit event of our form
 	$("#formEmail").submit(function(event){
 
-        event.preventDefault();
         console.log('within submit');
 		// abort any pending request
 
@@ -171,12 +130,12 @@ jQuery( document ).ready(function( $ ) {
         var my_script = document.createElement('script');
         my_script.setAttribute('src', url2);
         document.head.appendChild(my_script);
-        return false;
+
 	});
 
 });
 
-function emailSaved() {
+function emailSaved(arg) {
 			$('#result').html('Success - Thank you !');
 			console.log("Hooray, it worked!");
             alert("Thank you ! You will receive an invite when the App is ready.");
