@@ -107,6 +107,8 @@ var messageList = ["Message One",
 function updateMessages() {
     $('#anim').currentIndex =  ( ('#anim').currentIndex + 1 ) % messageList.length;
     var currentIndex = $('#anim').currentIndex;
+    console.log('currentIndex = ' + currentIndex);
+    console.log('message = ' + messageList[currentIndex]);
     // $('#anim').fadeToggle();
     $('#anim').innerHTML = messageList[currentIndex];
     // $('#anim').fadeToggle();
