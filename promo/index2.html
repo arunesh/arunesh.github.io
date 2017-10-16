@@ -98,19 +98,14 @@ function isRobot() {
     return ! $('#name').value && $('#name').value !== undefined; 
 }
 
-var messageList = ["Message One",
-    "Message Two",
-    "Message Three",
-    "Message Four",
-    "Message Five"];
-
 function updateMessages() {
-    $('#anim').currentIndex =  ( ('#anim').currentIndex + 1 ) % messageList.length;
-    var currentIndex = $('#anim').currentIndex;
+    var anim = document.getElementById('anim');
+    anim.currentIndex =  ( anim.currentIndex + 1 ) % anim.messageList.length;
+    var currentIndex = anim.currentIndex;
     console.log('currentIndex = ' + currentIndex);
     console.log('message = ' + messageList[currentIndex]);
     // $('#anim').fadeToggle();
-    $('#anim').innerHTML = messageList[currentIndex];
+    anim.innerHTML = messageList[currentIndex];
     // $('#anim').fadeToggle();
 }
 
@@ -119,6 +114,14 @@ jQuery( document ).ready(function( $ ) {
 	var request;
 
     $('#anim').currentIndex = 0;
+
+    $('#anim').messageList = ["Message One",
+    "Message Two",
+    "Message Three",
+    "Message Four",
+    "Message Five"];
+
+
     setInterval(updateMessages, 2000);
 
 	// bind to the submit event of our form
