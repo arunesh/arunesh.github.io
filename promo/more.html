@@ -21,7 +21,7 @@
         </style>
     </head>
 	<body>
-		<!-- Header -->
+		<!-- Header 
            <section id="header" class="dark">
                <header>
 					<h1>Introducing Neo</h1>
@@ -30,27 +30,6 @@
                     <br>
 				</header>
 
-                <div class="content style4 featured">
-					<div class="container 75%">
-                        <form method="get" id="formEmail">
-							<div class="row">
-								<div class="12u">
-                                      <input name="name" type="text" id="name" class="hide-robot">
-                                </div>
-                            </div>
-							<div class="row">
-								<div class="6u">
-                                      <input type="text" placeholder="Enter your Email" id="email" name = "Email"/>
-                                </div>
-								<div class="6u">
-									  <input class="button" type="submit" value="Request Invite" />
-                                      <p id="result"></p>
-                                </div>
-							</div>
-						</form>
-					</div>
-				</div>
-
                 <footer>
                     <br>
                     <br>
@@ -58,6 +37,7 @@
 					<a href="#first" class="button scrolly">Learn more</a>
 				</footer>
 			</section>
+        -->
 
 		<!-- First -->
 			<section id="first" class="main">
@@ -110,7 +90,7 @@
 						<div class="row">
 							<div class="12u">
 								<footer>
-									<a href="#header" class="button scrolly">Get an invite !</a>
+									<a href="#fourth" class="button scrolly">Get an invite !</a>
 								</footer>
 							</div>
 						</div>
@@ -126,6 +106,27 @@
 						<p>Please provide your email for the invitation link. This invitation lets you use Neo for free (no-ads) for the lifetime of the phone. You will also receive unlimited customer service for any issues with the app.<br />
 						</p>
 					</div>
+                <div class="content style4 featured">
+					<div class="container 90%">
+                        <form method="get" id="formEmail">
+							<div class="row">
+								<div class="12u">
+                                      <input name="name" type="text" id="name" class="hide-robot">
+                                </div>
+                            </div>
+							<div class="row">
+								<div class="6u">
+                                      <input type="text" placeholder="Enter your Email" id="email" name = "Email"/>
+                                </div>
+								<div class="6u">
+									  <input class="button" type="submit" value="Request Invite" />
+                                      <p id="result"></p>
+                                </div>
+							</div>
+						</form>
+					</div>
+				</div>
+
 
                     <div class="row">
 							<div class="12u">
@@ -173,6 +174,7 @@ jQuery( document ).ready(function( $ ) {
 	$("#formEmail").submit(function(event){
 
         console.log('within submit');
+        event.preventDefault();
 		// abort any pending request
 
         if (isRobot()) {
@@ -213,7 +215,7 @@ jQuery( document ).ready(function( $ ) {
         var my_script = document.createElement('script');
         my_script.setAttribute('src', url2);
         document.head.appendChild(my_script);
-
+        return false;
 	});
 
 });
