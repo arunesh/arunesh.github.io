@@ -98,9 +98,26 @@ function isRobot() {
     return ! $('#name').value && $('#name').value !== undefined; 
 }
 
+var messageList = ["Message One",
+    "Message Two",
+    "Message Three",
+    "Message Four",
+    "Message Five"];
+
+function updateMessages() {
+    $('#anim').currentIndex =  ( ('#anim').currentIndex + 1 ) % messageList.length;
+    var currentIndex = $('#anim').currentIndex;
+    $('#anim').fadeToggle();
+    $('#anim').innerHTML = messageList[currentIndex];
+    $('#anim').fadeToggle();
+}
+
 jQuery( document ).ready(function( $ ) {
 	// variable to hold request
 	var request;
+
+    $('#anim').currentIndex = 0;
+    setInterval(updateMessages, 2000);
 
 	// bind to the submit event of our form
 	$("#formEmail").submit(function(event){
