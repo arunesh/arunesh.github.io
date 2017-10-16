@@ -111,9 +111,9 @@ function updateMessages() {
     currentIndex =  ( currentIndex + 1 ) % messageList.length;
     console.log('currentIndex = ' + currentIndex);
     console.log('message = ' + messageList[currentIndex]);
-    // $('#anim').fadeToggle();
+    $('#anim').fadeToggle();
     anim.innerHTML = messageList[currentIndex];
-    // $('#anim').fadeToggle();
+    $('#anim').fadeToggle();
 }
 
 jQuery( document ).ready(function( $ ) {
