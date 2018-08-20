@@ -38,6 +38,9 @@ a:link {
 a:visited {
     color: blue;
 }
+img {
+    float:right;
+}
 a:hover {
     color: red;
 }
@@ -54,6 +57,14 @@ a:active {
 }
 #article-expand {
     display: none;
+}
+.newtitle {
+    margin-top: 20px;
+    margin-bottom: 40px;
+    font-size: 1.325em;
+    font-weight: bold;
+    color: rgb(51, 0, 128);
+    font-family: -apple-system, BlinkMacSystemFont, 'Inconsolata', sans-serif;
 }
 .title {
     margin-top: 20px;
