@@ -1,0 +1,114 @@
+body {
+    font-family: 'Source Sans Pro', sans-serif;
+}
+#writing:target {
+    background-color: #FDFD96;
+    animation: fadeout 2s forwards;
+    animation-delay: 2s;
+    -moz-animation: fadeout 2s forwards;
+    -moz-animation-delay: 2s;
+    -webkit-animation: fadeout 2s forwards;
+    -webkit-animation-delay: 2s;
+    -o-animation: fadeout 2s forwards;
+    -o-animation-delay: 2s;
+}
+@keyframes fadeout {
+    to {
+        background-color: #fff;
+    }
+}
+@-moz-keyframes fadeout {
+    to {
+        background-color: #fff;
+    }
+}
+@-webkit-keyframes fadeout {
+    to {
+        background-color: #fff;
+    }
+}
+@-o-keyframes fadeout {
+    to {
+        background-color: #fff;
+    }
+}
+a:link {
+    color: blue;
+}
+a:visited {
+    color: blue;
+}
+a:hover {
+    color: red;
+}
+a:active {
+    color: red;
+}
+::selection {
+    background: #ffb7b7;
+    /* WebKit/Blink Browsers */
+}
+::-moz-selection {
+    background: #ffb7b7;
+    /* Gecko Browsers */
+}
+#article-expand {
+    display: none;
+}
+.title {
+    margin-top: 20px;
+    margin-bottom: 40px;
+    font-size: 1.125em;
+    font-weight: bold;
+    font-family: -apple-system, BlinkMacSystemFont, 'Source Sans Pro', sans-serif;
+}
+.section {
+    margin-bottom: 30px;
+}
+.content {
+    margin-top: 100px;
+    margin-bottom: 100px;
+    margin-left: 100px;
+    width: 500px;
+}
+.writing-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+/* Landscape phones and down */
+@media (max-width: 350px) {
+    .content {
+        margin-left: 0px;
+        max-width: 300px;
+        margin: 0 auto;
+        width: 90%;
+    }
+}
+
+/* Landscape phones and down */
+@media (min-width: 350px) and (max-width: 480px) {
+    .content {
+        margin-left: 0px;
+        max-width: 350px;
+        margin: 0 auto;
+        width: 90%;
+    }
+}
+
+/* Landscape phone to portrait tablet */
+@media (max-width: 767px) {
+    .content {
+        margin-left: 0px;
+        margin: 0 auto;
+    }
+}
+
+/* Portrait tablet to landscape and desktop */
+@media (min-width: 768px) and (max-width: 979px) {}
+
+/* Large desktop */
+@media (min-width: 1200px) {}
+
+/* Very large desktop */
+@media (min-width: 1600px) {}
