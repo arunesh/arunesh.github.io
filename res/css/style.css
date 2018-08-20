@@ -39,7 +39,7 @@ a:visited {
     color: blue;
 }
 img {
-    float:right;
+    float:left;
 }
 a:hover {
     color: red;
