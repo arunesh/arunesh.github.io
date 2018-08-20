@@ -63,8 +63,8 @@ a:active {
     margin-bottom: 40px;
     font-size: 1.525em;
     font-weight: bold;
-    color: rgb(51, 0, 128);
-    font-family: -apple-system, BlinkMacSystemFont, 'Inconsolata', sans-serif;
+/*    color: rgb(51, 0, 128);*/
+    font-family: -apple-system, BlinkMacSystemFont, 'Ubuntu', sans-serif;
 }
 .title {
     margin-top: 20px;
