@@ -40,6 +40,8 @@ body {
             <p class="lowOrHi"></p>
         </div>
 
+        <button type="button" id="pm" >Prompt me</button>
+
         <script>
 
 let randomNumber = Math.floor(Math.random() * 100) + 1;
@@ -111,6 +113,13 @@ function resetGame() {
  guesses.textContent = '';
  lastResult.textContent = '';
 }
+
+function promptName() {
+  let name = prompt("Whats your name?");
+  alert("Nice to meet you: " + name);
+}
+
+document.querySelector("#pm").onclick = promptName
 
         </script>
     </body>
