@@ -39,8 +39,8 @@ function loop(timestamp) {
    var randomBall = new Ball(
             random(0, width),
             random(0, height), 0, 0, 
-            'rgb(' + random(0, 255) + ', ' + random(0, 255) + ', ' + random(0, 255) + ' )',
-            random(10, 20));
+            'rgba(' + random(0, 255) + ', ' + random(0, 255) + ', ' + random(0, 255) + ', 0.2 )',
+            random(5, 200));
    randomBall.draw(ctx);
    window.requestAnimationFrame(loop);
 }
