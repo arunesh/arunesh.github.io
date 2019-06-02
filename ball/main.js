@@ -38,10 +38,18 @@ function loop(timestamp) {
    h1text.innerHTML =  "Bouncing Balls: " + currTimeSec.toString(); 
    var randomBall = new Ball(
             random(0, width),
-            random(0, height), 0, 0, 
+            random(0, height), random(5, 50), random(5, 70), 
             'rgba(' + random(0, 255) + ', ' + random(0, 255) + ', ' + random(0, 255) + ', 0.2 )',
             random(5, 200));
-   randomBall.draw(ctx);
+    balls.push(randomBall);
+   if (balls.length > 25) {
+       balls.shift();
+   }
+   var i = 0;
+   ctx.clearRect(0, 0, width, height);
+   for (i = 0; i < balls.length; i ++) {
+       balls[i].draw(ctx);
+   }
    window.requestAnimationFrame(loop);
 }
 
