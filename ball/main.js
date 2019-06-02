@@ -33,6 +33,9 @@ Ball.prototype.draw = function (ctx) {
     ctx.fill();
 }
 
+Ball.prototype.updatePosition = function () {
+}
+
 function loop(timestamp) {
     currTimeSec = Date.now();
    h1text.innerHTML =  "Bouncing Balls: " + currTimeSec.toString(); 
