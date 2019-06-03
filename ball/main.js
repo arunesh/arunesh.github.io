@@ -34,26 +34,43 @@ Ball.prototype.draw = function (ctx) {
 }
 
 Ball.prototype.updatePosition = function () {
+    this.x = this.x + this.velX 
+    this.y = this.y + this.velY 
+    if (this.x <= this.size) {
+       this.velX = - this.velX;
+    } else if (this.x + this.size > width) {
+       this.velX = - this.velX;
+    }
+    if (this.y <= this.size) {
+       this.velY = - this.velY;
+    } else if (this.y + this.size > height) {
+       this.velY = - this.velY;
+    }
+}
+
+function generateBalls() {
+    var i = 0;
+    for (i = 0; i < 50; i ++) {
+        var randomBall = new Ball(
+	random(0, width),
+	random(0, height), random(0, 10), random(0, 20), 
+	'rgba(' + random(0, 255) + ', ' + random(0, 255) + ', ' + random(0, 255) + ', 0.2 )',
+	random(5, 50));
+        balls.push(randomBall);
+    }
 }
 
 function loop(timestamp) {
     currTimeSec = Date.now();
    h1text.innerHTML =  "Bouncing Balls: " + currTimeSec.toString(); 
-   var randomBall = new Ball(
-            random(0, width),
-            random(0, height), random(5, 50), random(5, 70), 
-            'rgba(' + random(0, 255) + ', ' + random(0, 255) + ', ' + random(0, 255) + ', 0.2 )',
-            random(5, 200));
-    balls.push(randomBall);
-   if (balls.length > 25) {
-       balls.shift();
-   }
    var i = 0;
    ctx.clearRect(0, 0, width, height);
    for (i = 0; i < balls.length; i ++) {
+       balls[i].updatePosition();
        balls[i].draw(ctx);
    }
    window.requestAnimationFrame(loop);
 }
 
+generateBalls();
 window.requestAnimationFrame(loop);
