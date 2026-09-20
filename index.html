@@ -50,7 +50,13 @@
             Patents</a>. <br><br>
 
       </div>
-       
+
+     <b>Open source projects </b><br>
+        <ul class="writing-list">
+            <li> VideoIndex: Agentic long video understanding system. <a href="https://videoindex.org">videoindex.org</a>.
+            <li> Codewalk: Knowledge-base for understanding large codebases.<a href="https://codewalk.app">codewalk.app</a>.
+        </ul>
+
       <div class="section other" id="other">
           <b>Other Coordinates</b><br>
         <ul class="writing-list">
@@ -62,6 +68,7 @@
             <li> Twitter: <a href="https://twitter.com/aruneshm">@aruneshm</a>.
             <li> PhD Thesis: <a href="https://drum.lib.umd.edu/handle/1903/3161"> here</a>.
         </ul>
+      </div>
       <div class="section other" id="other">
           <b>Recent Articles</b><br>
         <ul class="writing-list">
@@ -80,13 +87,244 @@
       </div>
     </div>
 
-    <b>Open source projects </b><br>
-        <ul class="writing-list">
-            <li> VideoIndex: Agentic long video understanding system. <a href="https://videoindex.org">videoindex.org</a>.
-            <li> Codewalk: Knowledge-base for understanding large codebases.<a href="https://codewalk.app">codewalk.app</a>.
-        </ul>
-      </div>
-    </div>
+
+
+    <!-- ===================== CRUMBLE ANIMATION START =====================
+         Self-contained effect: every character on the page falls as an intact
+         letter and piles up at the bottom of the window; moving the mouse pulls
+         the letters back into their original positions.
+         To disable, comment out or delete everything between START and END.
+         To limit it to some text, change CONFIG.selectors (e.g. ['.newtitle']). -->
+    <style>
+      .crumble-hide, .crumble-hide * { color: transparent !important; }
+    </style>
+    <script>
+    (function () {
+      var CONFIG = {
+        selectors: ['body'],        // which elements' text takes part ('body' = every character on the page)
+        initialHold: 1500,          // ms the text stays intact before the first crumble
+        idleRelease: 2500,          // ms without mouse movement before letters fall again
+        gravity: 1600,              // px/s^2
+        spring: 80,                 // pull strength back toward home position
+        pullDamping: 0.16,          // velocity damping per frame while being pulled
+        tumble: 4,                  // max spin while falling (rad/s)
+        steer: 6,                   // how strongly a falling letter drifts toward its spot in the pile
+        bounce: 0.15,
+        pileWidth: 0.9,             // pile base width as a fraction of the window width
+        floorPadding: 6             // gap between the pile and the bottom of the window
+      };
+
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (!window.requestAnimationFrame || !document.createRange) return;
+
+      var canvas, ctx, W, H, dpr, letters = [], targets = [];
+      var pull = 1, pullTarget = 1;            // 1 = letters held in place, 0 = free fall
+      var lastMove = performance.now() + CONFIG.initialHold;
+      var lastT = 0, hidden = false, staticDrawn = false;
+
+      function fontOf(cs) { return cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily; }
+
+      function collect(node) {
+        if (node.nodeType === 3) {
+          var text = node.textContent, parent = node.parentNode;
+          var cs = getComputedStyle(parent);
+          if (cs.display === 'none' || cs.visibility === 'hidden') return;
+          var font = fontOf(cs), color = cs.color;
+          var range = document.createRange();
+          var m = null;
+          for (var i = 0; i < text.length; i++) {
+            var ch = text[i];
+            if (/\s/.test(ch)) continue;
+            range.setStart(node, i); range.setEnd(node, i + 1);
+            var r = range.getClientRects()[0];
+            if (!r || r.width === 0) continue;
+            if (!m) { ctx.font = font; m = ctx.measureText(ch); }
+            letters.push({
+              ch: ch, font: font, color: color,
+              w: r.width, h: r.height,
+              ascent: m.fontBoundingBoxAscent || 0,
+              hx: r.left + window.scrollX, hy: r.top + window.scrollY,  // home, in document coords
+              x: 0, y: 0, vx: 0, vy: 0, a: 0, va: 0,
+              sx: 0, sy: 0,                   // resting spot in the pile (viewport coords)
+              thr: Math.random() * 0.6,       // staggers falling/returning
+              settled: false, atHome: true, fellFrom: 0
+            });
+          }
+        } else if (node.nodeType === 1 && !/^(CANVAS|SCRIPT|STYLE|NOSCRIPT)$/.test(node.tagName)) {
+          for (var c = node.firstChild; c; c = c.nextSibling) collect(c);
+        }
+      }
+
+      // Lay the letters out as a mound at the bottom of the window: rows from the floor up,
+      // each row a little narrower than the one below. Letters are shuffled so the pile mixes.
+      function layoutPile() {
+        var order = letters.slice();
+        for (var i = order.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1)), t = order[i]; order[i] = order[j]; order[j] = t;
+        }
+        var avgW = 0, avgH = 0;
+        for (i = 0; i < letters.length; i++) { avgW += letters[i].w; avgH += letters[i].h; }
+        avgW = avgW / letters.length || 8; avgH = avgH / letters.length || 16;
+        var rowH = avgH * 0.55, base = W * CONFIG.pileWidth;
+        var rows = Math.max(3, Math.ceil(1.6 * letters.length * (avgW * 0.95 + 1) / base));
+        var floor = H - CONFIG.floorPadding, k = 0, idx = 0;
+        while (idx < order.length) {
+          var frac = Math.min(k / rows, 0.97);
+          var rowW = base * (1 - frac * frac);
+          var x = (W - rowW) / 2 + Math.random() * 6, right = x + rowW;
+          var y = floor - k * rowH;
+          while (idx < order.length && x < right) {
+            var L = order[idx++];
+            L.sx = x; L.sy = y - L.h + (Math.random() - 0.5) * rowH * 0.8;
+            x += L.w * 0.95 + 1;
+          }
+          k++;
+        }
+      }
+
+      function sizeCanvas() {
+        dpr = window.devicePixelRatio || 1;
+        W = window.innerWidth; H = window.innerHeight;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function build() {
+        var wasHidden = hidden;
+        setHidden(false);                      // measure with real text visible
+        letters = [];
+        for (var i = 0; i < targets.length; i++) collect(targets[i]);
+        for (var j = 0; j < letters.length; j++) {
+          var L = letters[j];
+          L.x = L.hx - window.scrollX; L.y = L.hy - window.scrollY;
+        }
+        if (letters.length) layoutPile();
+        setHidden(wasHidden);
+        return letters.length > 0;
+      }
+
+      function setHidden(on) {
+        if (on === hidden) return;
+        hidden = on;
+        for (var i = 0; i < targets.length; i++) targets[i].classList.toggle('crumble-hide', on);
+        canvas.style.display = on ? 'block' : 'none';
+      }
+
+      function frame(t) {
+        requestAnimationFrame(frame);
+        var dt = Math.min((t - lastT) / 1000, 1 / 30) || 1 / 60;
+        lastT = t;
+
+        pullTarget = (t - lastMove < CONFIG.idleRelease) ? 1 : 0;
+        pull += (pullTarget - pull) * (pullTarget > pull ? 0.08 : 0.015);
+
+        var sx = window.scrollX, sy = window.scrollY;
+        var allHome = true, anyMoving = false, i, L;
+
+        for (i = 0; i < letters.length; i++) {
+          L = letters[i];
+          var homeX = L.hx - sx, homeY = L.hy - sy;
+          var pe = Math.max(0, Math.min(1, (pull - L.thr) / (1 - L.thr)));   // this letter's effective pull
+
+          if (L.atHome && pe >= 0.999) { L.x = homeX; L.y = homeY; continue; }
+          allHome = false;
+
+          if (pe > 0) {                                      // spring back toward home
+            L.settled = false;
+            L.vx += (homeX - L.x) * CONFIG.spring * pe * dt;
+            L.vy += (homeY - L.y) * CONFIG.spring * pe * dt;
+            L.va += (0 - L.a) * CONFIG.spring * pe * dt;
+            L.vx *= 1 - CONFIG.pullDamping * pe;
+            L.vy *= 1 - CONFIG.pullDamping * pe;
+            L.va *= 1 - CONFIG.pullDamping * pe;
+          }
+          if (L.settled) continue;
+          anyMoving = true;
+
+          if (pe < 1) {
+            if (L.atHome) {                                  // just released: give it a nudge and a spin
+              L.atHome = false; L.fellFrom = L.y;
+              L.vx = (Math.random() - 0.5) * 40;
+              L.va = (Math.random() - 0.5) * 2 * CONFIG.tumble;
+            }
+            L.vy += CONFIG.gravity * (1 - pe) * dt;
+            L.vx += (L.sx - L.x) * CONFIG.steer * (1 - pe) * dt;   // drift toward its spot in the pile
+            L.vx *= 1 - 0.02 * (1 - pe);
+          }
+
+          L.x += L.vx * dt; L.y += L.vy * dt; L.a += L.va * dt;
+
+          if (L.x < 0) { L.x = 0; L.vx = Math.abs(L.vx) * 0.5; }
+          if (L.x + L.w > W) { L.x = W - L.w; L.vx = -Math.abs(L.vx) * 0.5; }
+
+          if (pe < 0.5 && L.y >= L.sy) {                     // reached its resting spot in the pile
+            L.y = L.sy;
+            if (Math.abs(L.vy) > 120) {                      // hit hard: small bounce
+              L.vy = -L.vy * CONFIG.bounce; L.vx *= 0.5; L.va *= 0.3;
+            } else {
+              L.x = L.sx; L.vx = L.vy = L.va = 0; L.settled = true;
+              if (L.sy - L.fellFrom < 60) L.a = (Math.random() - 0.5) * 1.6;   // came from below the window: land tilted
+            }
+          }
+
+          if (pe > 0.95 && Math.abs(L.x - homeX) < 0.3 && Math.abs(L.y - homeY) < 0.3 && Math.abs(L.a) < 0.01) {
+            L.x = homeX; L.y = homeY; L.a = 0; L.vx = L.vy = L.va = 0; L.atHome = true;
+          }
+        }
+
+        if (allHome) { setHidden(false); staticDrawn = false; return; }   // show the real text, hide the canvas
+        setHidden(true);
+        if (!anyMoving && staticDrawn) return;               // pile at rest: nothing to redraw
+        staticDrawn = !anyMoving;
+
+        ctx.clearRect(0, 0, W, H);
+        for (i = 0; i < letters.length; i++) {
+          L = letters[i];
+          ctx.save();
+          ctx.translate(L.x + L.w / 2, L.y + L.h / 2);
+          ctx.rotate(L.a);
+          ctx.font = L.font; ctx.fillStyle = L.color;
+          if (L.ascent) { ctx.textBaseline = 'alphabetic'; ctx.fillText(L.ch, -L.w / 2, -L.h / 2 + L.ascent); }
+          else { ctx.textBaseline = 'top'; ctx.fillText(L.ch, -L.w / 2, -L.h / 2); }
+          ctx.restore();
+        }
+      }
+
+      function onMove() { lastMove = performance.now(); }
+
+      function start() {
+        for (var i = 0; i < CONFIG.selectors.length; i++) {
+          var found = document.querySelectorAll(CONFIG.selectors[i]);
+          for (var j = 0; j < found.length; j++) targets.push(found[j]);
+        }
+        if (!targets.length) return;
+        canvas = document.createElement('canvas');
+        canvas.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none;z-index:9999;display:none;';
+        canvas.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(canvas);
+        ctx = canvas.getContext('2d');
+        sizeCanvas();
+        if (!build()) { canvas.remove(); return; }
+        window.addEventListener('pointermove', onMove, { passive: true });
+        window.addEventListener('touchmove', onMove, { passive: true });
+        var resizeTimer;
+        window.addEventListener('resize', function () {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(function () { sizeCanvas(); build(); }, 150);
+        });
+        requestAnimationFrame(frame);
+      }
+
+      var ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { ready.then(start); });
+      } else {
+        ready.then(start);
+      }
+    })();
+    </script>
+    <!-- ===================== CRUMBLE ANIMATION END ===================== -->
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-120920911-1"></script>
