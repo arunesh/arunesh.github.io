@@ -103,7 +103,7 @@
       var CONFIG = {
         selectors: ['body'],        // which elements' text takes part ('body' = every character on the page)
         initialHold: 1500,          // ms the text stays intact before the first crumble
-        idleRelease: 2500,          // ms without mouse movement before letters fall again
+        idleRelease: 20000,         // ms without mouse movement before letters fall again
         gravity: 1600,              // px/s^2
         spring: 80,                 // pull strength back toward home position
         pullDamping: 0.16,          // velocity damping per frame while being pulled
