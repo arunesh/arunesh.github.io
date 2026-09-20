@@ -119,7 +119,8 @@
 
       var canvas, ctx, W, H, dpr, letters = [], targets = [];
       var pull = 1, pullTarget = 1;            // 1 = letters held in place, 0 = free fall
-      var lastMove = performance.now() + CONFIG.initialHold;
+      var firstFallAt = performance.now() + CONFIG.initialHold;      // first fall happens here regardless of idleRelease
+      var lastMove = firstFallAt - CONFIG.idleRelease;
       var lastT = 0, hidden = false, staticDrawn = false;
 
       function fontOf(cs) { return cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily; }
@@ -291,7 +292,11 @@
         }
       }
 
-      function onMove() { lastMove = performance.now(); }
+      function onMove() {
+        var now = performance.now();
+        if (now < firstFallAt) return;         // don't let early mouse movement postpone the first fall
+        lastMove = now;
+      }
 
       function start() {
         for (var i = 0; i < CONFIG.selectors.length; i++) {
