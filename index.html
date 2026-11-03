@@ -27,7 +27,8 @@
       <div class="section bio" style="margin-top:25px">
         <br/>
 
-        Currently working on Agentic AI application towards knoweledge retrieval from long videos and documents. Also CodeWalk: An Agentic system for architectural understanding of large codebases. 
+        Projects: VideoIndex: An Agentic AI application towards knoweledge retrieval from long videos and documents. Also CodeWalk: An Agentic system for architectural understanding of large codebases. 
+        FastLLM: Native, secure, fast inference with dynamic kernel shaping, beats vLLM/SGLang by 1.5x.
 
         Past projects include Intelligent Automation, Knowledge-based answering systems and
         web-based Chatbot systems. <br><br>
@@ -101,8 +102,9 @@
     <script>
     (function () {
       var CONFIG = {
-        selectors: ['body'],        // which elements' text takes part ('body' = every character on the page)
-        initialHold: 1500,          // ms the text stays intact before the first crumble
+        enabled: false,             // master switch: set to true to turn the crumble animation back on
+        selectors:['body'],        // which elements' text takes part ('body' = every character on the page)
+        initialHold: 10000,         // ms the text stays intact before the first crumble
         idleRelease: 20000,         // ms without mouse movement before letters fall again
         gravity: 1600,              // px/s^2
         spring: 80,                 // pull strength back toward home position
@@ -114,6 +116,7 @@
         floorPadding: 6             // gap between the pile and the bottom of the window
       };
 
+      if (!CONFIG.enabled) return;
       if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       if (!window.requestAnimationFrame || !document.createRange) return;
 
