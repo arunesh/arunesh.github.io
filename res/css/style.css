@@ -123,3 +123,109 @@ a:active {
 
 /* Very large desktop */
 @media (min-width: 1600px) {}
+
+/* ---------- Main section layout ---------- */
+.main {
+    clear: both;
+    padding-top: 40px;
+    max-width: 760px;
+    font-size: 1.05em;
+    line-height: 1.55;
+    color: #222;
+}
+.main p {
+    margin: 0.4em 0 0.8em;
+}
+.section-head {
+    font-family: -apple-system, BlinkMacSystemFont, 'Ubuntu', sans-serif;
+    font-size: 1.05em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #333;
+    margin: 2em 0 0.8em;
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid #e5e5e5;
+}
+.main > .section-head:first-child {
+    margin-top: 0;
+}
+.project-list, .highlight-list, .chip-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+.project-list li {
+    margin-bottom: 1em;
+    padding-left: 12px;
+    border-left: 3px solid #dfe3f5;
+}
+.project-list p {
+    margin: 0.15em 0 0;
+}
+.project-name {
+    font-weight: 700;
+    font-size: 1.05em;
+}
+.project-tags {
+    margin-left: 8px;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.85em;
+    color: #777;
+}
+.metric {
+    font-family: 'Inconsolata', monospace;
+    font-weight: 600;
+    background: #f1f3fb;
+    padding: 1px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+}
+.note {
+    color: #666;
+    font-size: 0.95em;
+}
+.chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    margin-bottom: 0.6em;
+}
+.chip-list li {
+    font-size: 0.9em;
+    padding: 2px 10px;
+    border: 1px solid #d8dbe6;
+    border-radius: 12px;
+    background: #fafbfd;
+}
+.highlight-list li {
+    position: relative;
+    padding-left: 16px;
+    margin-bottom: 0.5em;
+}
+.highlight-list li::before {
+    content: "\25B8";
+    position: absolute;
+    left: 0;
+    color: #999;
+}
+.stat-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    margin-bottom: 0.4em;
+}
+.stat-num {
+    font-family: -apple-system, BlinkMacSystemFont, 'Ubuntu', sans-serif;
+    font-size: 1.8em;
+    font-weight: 700;
+    line-height: 1.1;
+}
+.stat-label {
+    font-size: 0.9em;
+    color: #555;
+}
+@media (max-width: 767px) {
+    .main { max-width: 100%; }
+    .project-tags { display: block; margin-left: 0; }
+}
