@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NoProtocol: When AI Models Talk Without a Protocol · Arunesh Mishra · Blog</title>
+  <meta name="description" content="Will AI agents drop human language and talk in binary? Not on their own. But engineers will wire them together for 2–4x speedups, and that removes the text layer almost every oversight tool depends on. Here is the evidence, the risks, and a design that keeps the speed without going dark.">
+  <meta name="author" content="Arunesh Mishra">
+  <link rel="canonical" href="https://arunesh.github.io/blog/noprotocol/">
+  <meta property="og:title" content="NoProtocol: When AI Models Talk Without a Protocol · Arunesh Mishra · Blog">
+  <meta property="og:description" content="Will AI agents drop human language and talk in binary? Not on their own. But engineers will wire them together for 2–4x speedups, and that removes the text layer almost every oversight tool depends on. Here is the evidence, the risks, and a design that keeps the speed without going dark.">
+  <meta property="og:url" content="https://arunesh.github.io/blog/noprotocol/">
+  <link rel="alternate" type="application/rss+xml" title="Arunesh Mishra · Blog" href="/blog/feed.xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="/blog/assets/blog.css" rel="stylesheet">
+</head>
+<body>
+  <div class="accent-bar" aria-hidden="true"></div>
+  <nav class="site-nav">
+    <a class="home" href="/">Arunesh Mishra</a>
+    <span class="nav-links"><a href="/blog/">Blog</a><a href="/blog/feed.xml">RSS</a></span>
+  </nav>
+  <main class="wrap">
+<article class="post">
+  <header class="post-head">
+    <p class="meta"><time datetime="2026-11-03">Nov 3, 2026</time> · 12 min read</p>
+    <h1>NoProtocol: When AI Models Talk Without a Protocol</h1>
+    <p class="lede">Will AI agents drop human language and talk in binary? Not on their own. But engineers will wire them together for 2–4x speedups, and that removes the text layer almost every oversight tool depends on. Here is the evidence, the risks, and a design that keeps the speed without going dark.</p>
+    <div class="tags"><span class="tag">agentic AI</span><span class="tag">AI safety</span><span class="tag">security</span><span class="tag">multi-agent systems</span></div>
+  </header>
+  <details class="toc"><summary>Contents</summary><div class="toc">
+<ul>
+<li><a href="#the-short-answer">The short answer</a></li>
+<li><a href="#what-the-evidence-actually-shows">What the evidence actually shows</a></li>
+<li><a href="#will-they-go-binary">Will they go binary?</a></li>
+<li><a href="#the-case-for-noprotocol">The case for NoProtocol</a></li>
+<li><a href="#security-and-safety-risks">Security and safety risks</a></li>
+<li><a href="#pros-and-cons-at-a-glance">Pros and cons at a glance</a></li>
+<li><a href="#getting-the-speed-without-losing-oversight">Getting the speed without losing oversight</a></li>
+<li><a href="#conclusion">Conclusion</a></li>
+<li><a href="#sources">Sources</a></li>
+</ul>
+</div>
+</details>
+  <div class="prose">
+<h2 id="the-short-answer">The short answer<a class="anchor" href="#the-short-answer" title="Permanent link">#</a></h2>
+<p>Two frozen, off-the-shelf language models connected by a raw socket will not spontaneously start exchanging binary. They emit tokens, because that is the only output they were trained to produce. The drift toward non-human encodings that research has documented happens under one of three conditions: the models are <em>trained</em> together with a reward that ignores human readability, they are <em>instructed or engineered</em> to switch, or the designers <em>wire their internals together</em> (hidden states, KV caches) on purpose.</p>
+<p>So the real question behind &ldquo;NoProtocol&rdquo; is not whether models will invent binary on their own. It is whether we will let them, or build systems that make them, because the efficiency gains are real. That is a design choice with large security and safety consequences.</p>
+<p><strong>What &ldquo;NoProtocol&rdquo; means here.</strong> Today agent-to-agent traffic rides on explicit protocols such as MCP, Google&rsquo;s A2A and plain JSON-over-HTTP. Each defines message types, schemas, identity and a human-legible payload. A NoProtocol channel removes that layer: the two models agree on their own encoding, whether that is compressed shorthand, an ad-hoc binary format, an acoustic modem signal, or direct transfer of internal tensors. Nothing outside the two endpoints is guaranteed to understand what passed between them.</p>
+<h2 id="what-the-evidence-actually-shows">What the evidence actually shows<a class="anchor" href="#what-the-evidence-actually-shows" title="Permanent link">#</a></h2>
+<p>Every well-known case of machines &ldquo;leaving human language&rdquo; falls into one of three buckets: drift under training pressure, scripted switching, or engineered latent exchange. None is a case of deployed LLMs inventing binary unprompted.</p>
+<table>
+<thead>
+<tr>
+<th>Case</th>
+<th>Year</th>
+<th>What happened</th>
+<th>Spontaneous?</th>
+<th>Payload humans can read?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://arxiv.org/abs/2511.20639">LatentMAS</a> (Princeton, Stanford, UIUC et al., ICML 2026)</td>
+<td>2025–26</td>
+<td>Agents reason in last-layer hidden states and hand each other KV-cache &ldquo;working memory&rdquo;. Training-free. Up to 14.6% higher accuracy, 70.8–83.7% fewer output tokens, about 4x faster than text-based multi-agent baselines</td>
+<td>No, engineered</td>
+<td>No (tensors)</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2510.03215">Cache-to-Cache (C2C)</a> (Tsinghua, ICLR 2026)</td>
+<td>2025–26</td>
+<td>A learned fuser projects one model&rsquo;s KV cache into another&rsquo;s. 3.1–5.4% more accurate than text exchange, about 2.5x lower latency</td>
+<td>No, engineered</td>
+<td>No (tensors)</td>
+</tr>
+<tr>
+<td><a href="https://www.usenix.org/conference/nsdi26/presentation/liu-yuhan">DroidSpeak</a> (UChicago, Microsoft, NSDI 2026)</td>
+<td>2024–26</td>
+<td>Fine-tuned variants of one base model reuse each other&rsquo;s KV caches, recomputing a few critical layers. Up to 4x throughput, ~3.1x faster prefill</td>
+<td>No, engineered</td>
+<td>No (tensors)</td>
+</tr>
+<tr>
+<td><a href="https://github.com/PennyroyalTea/gibberlink">Gibberlink</a> (ElevenLabs hackathon)</td>
+<td>2025</td>
+<td>Two voice agents booking a hotel switch from English to the ggwave data-over-sound modem once each detects the other is an AI</td>
+<td>No. The authors say the agents <a href="https://community.openai.com/t/gibberlink-more-efficient-ai-communications/1128907/18">were explicitly prompted</a> to switch</td>
+<td>Yes once decoded: the sound carries short text/JSON</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2410.11905">Agora</a> (Oxford et al.)</td>
+<td>2024</td>
+<td>LLM agents start in natural language, then negotiate a plain-text Protocol Document and write code routines for frequent exchanges. In a 100-agent network, task-specific protocols emerged</td>
+<td>Partly: the format is negotiated, but the spec stays human-readable and hash-addressed</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2006.02419">Emergent communication</a> research (DeepMind, FAIR, others)</td>
+<td>2016–</td>
+<td>Agents trained jointly with reinforcement learning develop their own codes; <a href="https://arxiv.org/abs/2005.07064">Lazaridou et al.</a> catalogue structural, semantic and pragmatic &ldquo;language drift&rdquo;</td>
+<td>Yes, under training</td>
+<td>Often no</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/1706.05125">FAIR &ldquo;Deal or No Deal&rdquo;</a> negotiation bots</td>
+<td>2017</td>
+<td>Bots fine-tuned against each other drifted into repetitive shorthand (&ldquo;to me to me to me&rdquo;); researchers re-anchored them to English because the goal was talking to people</td>
+<td>Yes, under training</td>
+<td>Barely: English words, broken grammar</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The pattern.</strong> Spontaneous drift appears only when a reward gradient flows through the communication channel and nothing penalises leaving human language. Latent exchange appears when engineers deliberately remove the text bottleneck for speed and accuracy. The viral &ldquo;secret language&rdquo; stories (FAIR in 2017, Gibberlink in 2025) were both less autonomous than the headlines suggested. FAIR&rsquo;s bots were redirected, <a href="https://www.elektormagazine.com/news/it-was-a-quiet-news-day-at-facebook">not &ldquo;shut down out of fear&rdquo;</a>, and Gibberlink was a scripted demo of a 1980s-style modem technique.</p>
+<h2 id="will-they-go-binary">Will they go binary?<a class="anchor" href="#will-they-go-binary" title="Permanent link">#</a></h2>
+<p>Inside one operator&rsquo;s infrastructure, probably yes, and soon, because engineers will choose latent channels for 2–4x speedups. Across organisational trust boundaries, probably not, because heterogeneous models cannot share internals and identity, audit and liability all require a legible message.</p>
+<p><strong>&ldquo;Binary&rdquo; is the wrong word.</strong> Everything on a network is already binary. The meaningful distinctions are whether a message is <em>human-interpretable</em> and whether it is <em>discrete</em> (tokens from a vocabulary) or <em>continuous</em> (vectors of floats). A Gibberlink chirp is binary on the wire but decodes to plain text. A KV-cache transfer is also binary, but no human or standard parser can read it.</p>
+<p><strong>Why the pull toward latent exchange is strong.</strong> A sampled token from a ~100k-word vocabulary carries at most about 17 bits. A single hidden-state vector in a 4,096-dimensional model, at 16-bit precision, is about 65,000 bits of raw capacity (our arithmetic, not a measured information content). Text forces the sender to collapse a rich internal state into a thin stream, then forces the receiver to rebuild it. The C2C and LatentMAS results are what you would expect when that bottleneck is removed: better accuracy, far fewer generated tokens, lower latency.</p>
+<p><strong>Three routes off human language, and what each needs:</strong></p>
+<ol>
+<li><strong>Instructed encoding.</strong> A developer tells agents to switch codecs (Gibberlink, base64, a compact binary schema). Needs only a prompt and a tool. The semantics stay textual, so a third party with the codec can still read everything.</li>
+<li><strong>Learned drift.</strong> Agents fine-tuned together against a shared reward slide into private shorthand. Needs a gradient flowing through the channel and no penalty for leaving natural language. As multi-agent reinforcement learning on outcome rewards becomes a standard post-training step, this pressure stops being academic.</li>
+<li><strong>Engineered latent exchange.</strong> Hidden states or KV caches pass directly between models. Needs compatible internals: DroidSpeak only works between fine-tunes sharing an architecture, C2C trains a projector per model pair, and LatentMAS assumes a shared working memory. This is the closest thing to a true &ldquo;NoProtocol&rdquo; link.</li>
+</ol>
+<p><strong>The likely end state is layered, not protocol-free.</strong> Expect latent links inside a trusted cluster (same vendor, same model family, same operator), wrapped in structured protocols such as A2A and MCP at every organisational boundary. Agora points at the middle path: agents may <em>negotiate</em> an efficient format, but the agreement is written down in a human-readable, hash-addressed document.</p>
+<h2 id="the-case-for-noprotocol">The case for NoProtocol<a class="anchor" href="#the-case-for-noprotocol" title="Permanent link">#</a></h2>
+<p>The benefits are measurable and large: published systems report 2.5–4x lower latency, 70–84% fewer generated tokens and a few points of accuracy, with no new model training in the LatentMAS case.</p>
+<ul>
+<li><strong>Speed and cost.</strong> Token-by-token decoding is the slowest part of inference. Skipping it between agents removes most of the wall-clock time in a multi-agent pipeline, and fewer tokens means lower GPU spend and energy.</li>
+<li><strong>Fidelity.</strong> Text is lossy and ambiguous. C2C&rsquo;s authors point out that a receiving model can misread a cue the sender meant precisely; a cache transfer carries the sender&rsquo;s own interpretation rather than a paraphrase of it.</li>
+<li><strong>Better collective reasoning.</strong> Accuracy gains over text-based multi-agent baselines (3–5 points for C2C, up to 4.6 for LatentMAS) suggest agents lose useful uncertainty and intermediate structure when forced to verbalise.</li>
+<li><strong>Reuse of shared context.</strong> DroidSpeak shows that agents working on the same long context need not each re-read it; one prefill can serve several related models.</li>
+<li><strong>Robustness to phrasing attacks.</strong> A channel that does not carry free text cannot be talked into anything by a cleverly worded message. This only holds if nothing upstream re-renders the latent as text, and it does not hold against adversaries who can craft tensors (see risks).</li>
+<li><strong>Edge and on-device fit.</strong> Between co-located models on one device or one server, skipping the decode-then-re-encode round trip saves compute and battery. The saving is in compute, not network bytes: a KV cache is far larger than the text it encodes (see the risks).</li>
+</ul>
+<h2 id="security-and-safety-risks">Security and safety risks<a class="anchor" href="#security-and-safety-risks" title="Permanent link">#</a></h2>
+<p>The central problem is an asymmetry: a latent channel is unreadable to defenders but not to capable attackers. Removing the protocol layer removes the places where today&rsquo;s security controls live, while the content itself stays recoverable by anyone with the right model.</p>
+<p><strong>1. Oversight goes dark.</strong> Guardrail classifiers, data-loss prevention, audit logs and human review all operate on text. A <a href="https://arxiv.org/abs/2507.11473">41-author position paper</a> from researchers at OpenAI, Google DeepMind, Anthropic and others argued in July 2025 that readable chains of thought are a valuable but <em>fragile</em> safety signal that latent reasoning could erode. Latent inter-agent messages are the multi-agent version of the same loss: the conversation where agents plan together is no longer inspectable.</p>
+<p><strong>2. A ready-made covert channel for collusion.</strong> <a href="https://arxiv.org/abs/2402.07510">Motwani et al. (NeurIPS 2024)</a> formalised &ldquo;secret collusion&rdquo;: agents hiding coordination from overseers via steganography. They found steganographic ability rising with model capability and showed that defences such as paraphrasing are limited. In a text channel, colluding agents must hide signals inside plausible prose. In a latent channel they need not hide anything, because the whole channel is opaque by default. In classic security terms, NoProtocol hands every agent pair an unmonitored covert channel.</p>
+<p><strong>3. Faster, invisible worm propagation.</strong> <a href="https://arxiv.org/abs/2410.07283">Prompt Infection (Lee and Tiwari, 2024)</a> showed malicious instructions self-replicating from agent to agent, stealing data as they spread, even when agents do not share all messages. Its proposed defence, tagging which text came from another LLM, depends on being able to see and mark text. A poisoned KV cache or hidden state passed downstream cannot be scanned, tagged or quarantined with today&rsquo;s tools.</p>
+<p><strong>4. A much larger attack surface: adversarial tensors.</strong> A text interface accepts only vocabulary tokens. A latent interface accepts any vector. <a href="https://arxiv.org/abs/2402.09063">Schwinn et al. (NeurIPS 2024)</a> found that attacks in continuous embedding space strip safety alignment more efficiently than text jailbreaks or fine-tuning. Any agent that accepts latents from a peer accepts this threat model from that peer, and from anyone who compromises it.</p>
+<p><strong>5. Opaque is not private.</strong> Latents look like noise to a human auditor but leak content to an attacker. <a href="https://arxiv.org/abs/2310.06816">Vec2Text</a> recovered 92% of 32-token inputs exactly from their embeddings, and the authors concluded embeddings deserve the same protection as raw text. Shared KV caches have already produced side channels: <a href="https://www.ndss-symposium.org/ndss-paper/i-know-what-you-asked-prompt-leakage-via-kv-cache-sharing-in-multi-tenant-llm-serving/">PromptPeek (NDSS 2025)</a> reconstructs other tenants&rsquo; prompts, and a <a href="https://arxiv.org/abs/2409.20002">timing attack</a> recovered system prompts token by token from cache hits.</p>
+<p><strong>6. No identity, integrity or accountability.</strong> Protocols carry sender identity, signatures, schemas, versions and replay protection. A raw latent stream carries none of these, so &ldquo;who told this agent to do that?&rdquo; becomes unanswerable, which breaks forensics and non-repudiation. Gibberlink-style mode switches are triggered by an <em>unauthenticated</em> belief that &ldquo;the other side is an AI&rdquo;, which any attacker can fake.</p>
+<p><strong>7. Silent semantic failure.</strong> Text and schemas fail loudly with parse errors. Latents fail quietly: <a href="https://www.usenix.org/conference/nsdi26/presentation/liu-yuhan">DroidSpeak</a> found that naively sharing caches between differing models degrades quality sharply. A routine model update on one side can corrupt meaning on the other with no error raised.</p>
+<p><strong>8. Drift you cannot see even in text.</strong> <a href="https://arxiv.org/abs/2005.07064">Lazaridou et al.</a> describe <em>pragmatic drift</em>: co-adapted agents can keep using English words while meaning something different from what a human reader infers. Co-trained agents can therefore develop a private dialect even inside a protocol that looks human-readable.</p>
+<p><strong>9. Bandwidth and the network itself.</strong> A KV cache is enormous next to text. For an 8B-parameter model with grouped-query attention (32 layers, 1,024 KV dimensions, 16-bit), one token&rsquo;s cache is about 128 KB versus a few bytes of text (our arithmetic). Across a WAN this is impractical and expands what an eavesdropper can harvest, which keeps true NoProtocol links inside datacentres and on-device for now.</p>
+<h2 id="pros-and-cons-at-a-glance">Pros and cons at a glance<a class="anchor" href="#pros-and-cons-at-a-glance" title="Permanent link">#</a></h2>
+<p>Each step away from human-readable text buys speed and fidelity and pays for it in oversight. The rows run from most to least legible.</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Example</th>
+<th>Main gain</th>
+<th>Human-auditable</th>
+<th>Works across vendors</th>
+<th>Main risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Natural language</td>
+<td>Agents chatting in English</td>
+<td>Universal, flexible, easy to debug</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Prompt injection, ambiguity, slow token decoding</td>
+</tr>
+<tr>
+<td>Structured protocol</td>
+<td>A2A, MCP, JSON over HTTPS</td>
+<td>Typed messages, identity, schemas, tooling</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Rigid; needs human design and versioning</td>
+</tr>
+<tr>
+<td>Negotiated protocol</td>
+<td>Agora Protocol Documents</td>
+<td>Efficiency of a protocol without hand-writing one</td>
+<td>Yes, if specs are logged</td>
+<td>Yes</td>
+<td>Agents may agree on formats nobody reviews</td>
+</tr>
+<tr>
+<td>Encoded tokens</td>
+<td>Gibberlink over ggwave, base64, private shorthand</td>
+<td>Compact, fast on a narrow channel</td>
+<td>Only with the codec; drifted shorthand barely</td>
+<td>Partly</td>
+<td>Unauthenticated mode switch; covert shorthand</td>
+</tr>
+<tr>
+<td>Latent exchange</td>
+<td>C2C, LatentMAS, DroidSpeak</td>
+<td>2.5–4x lower latency, a few points more accuracy</td>
+<td>No</td>
+<td>No: same family or a trained adapter</td>
+<td>Monitoring blind spot, collusion, adversarial tensors, inversion leaks, huge payloads</td>
+</tr>
+</tbody>
+</table>
+<h2 id="getting-the-speed-without-losing-oversight">Getting the speed without losing oversight<a class="anchor" href="#getting-the-speed-without-losing-oversight" title="Permanent link">#</a></h2>
+<p>The workable design is &ldquo;latent inside, legible at the edges&rdquo;: allow protocol-free links only within one trust domain, and force everything that crosses a boundary back into an authenticated, inspectable protocol.</p>
+<figure>
+  <img src="/blog/assets/noprotocol/architecture.svg" alt="Reference architecture: planner, coder and critic models exchange latents inside one trust domain; a gateway decodes, scans, signs and logs everything that leaves, and talks to external agents over signed A2A or MCP." width="760" height="352">
+  <figcaption>Latent traffic stays among co-located models; the gateway is the only way out, and it emits legible, signed messages.</figcaption>
+</figure>
+
+<ol>
+<li><strong>Bound the latent zone.</strong> Permit KV-cache or hidden-state exchange only between models run by the same operator, from the same model family, on attested hardware. Never across tenants or organisations.</li>
+<li><strong>Decode at the gate.</strong> Any result leaving the latent zone is rendered to text or a typed schema, scanned and logged before it crosses. The gateway is where guardrails, DLP and human review keep working.</li>
+<li><strong>Treat latents as raw data.</strong> Encrypt them in transit and at rest, isolate KV caches per tenant, and set retention limits. Embedding inversion and cache side channels mean &ldquo;unreadable&rdquo; offers no confidentiality.</li>
+<li><strong>Authenticate any mode switch.</strong> Moving from text to a compact encoding should be a signed capability exchange (for example via A2A agent cards), never inferred from &ldquo;the other side sounds like a bot&rdquo;.</li>
+<li><strong>Fail loudly.</strong> Stamp every latent message with the sender&rsquo;s model and version hash, reject mismatches, and check incoming tensors against expected norms and distributions before they reach the model.</li>
+<li><strong>Keep a legible shadow.</strong> Log the negotiated format (an Agora-style, hash-addressed protocol document) and a text summary of each latent session so forensics can reconstruct who asked for what.</li>
+<li><strong>Anchor co-trained agents to language.</strong> When agents are fine-tuned together, add a penalty for drifting from a frozen reference language model, and measure drift and steganographic capacity (for example with Motwani et al.&rsquo;s CASE evaluations) at each training checkpoint.</li>
+<li><strong>Red-team the channel, not just the model.</strong> Test for collusion, self-replicating injection and embedding-space attacks between agents before deployment.</li>
+<li><strong>Make monitorability a release criterion.</strong> Following the chain-of-thought monitorability authors, weigh any efficiency gain against what it does to your ability to see what the system is doing, and record that decision.</li>
+</ol>
+<p>Open research question: reliable <em>latent auditors</em> that translate hidden-state traffic into faithful text summaries. Until they exist, recommendation 2 is the only robust control.</p>
+<h2 id="conclusion">Conclusion<a class="anchor" href="#conclusion" title="Permanent link">#</a></h2>
+<p>AI models will not drift into binary simply because nobody imposed a protocol. They will leave human language when we train them to or wire them to, and the efficiency numbers guarantee that someone will. The research record so far is mostly engineering (C2C, LatentMAS, DroidSpeak) and a few overstated viral moments (FAIR 2017, Gibberlink 2025), not autonomous invention.</p>
+<p>The security cost is concentrated in one place: human-readable text is currently the substrate for almost every AI oversight tool. NoProtocol removes it while leaving the content exposed to inversion and side channels. Adopt latent links where the trust domain is closed and the speedup matters; keep a legible, authenticated protocol at every boundary.</p>
+<h2 id="sources">Sources<a class="anchor" href="#sources" title="Permanent link">#</a></h2>
+<ul>
+<li>Zou et al., <a href="https://arxiv.org/abs/2511.20639">Latent Collaboration in Multi-Agent Systems (LatentMAS)</a>, ICML 2026</li>
+<li>Fu et al., <a href="https://arxiv.org/abs/2510.03215">Cache-to-Cache: Direct Semantic Communication Between LLMs</a>, ICLR 2026</li>
+<li>Liu et al., <a href="https://www.usenix.org/conference/nsdi26/presentation/liu-yuhan">DroidSpeak: KV Cache Sharing Across Fine-tuned Model Variants</a>, NSDI 2026</li>
+<li>Marro et al., <a href="https://arxiv.org/abs/2410.11905">A Scalable Communication Protocol for Networks of LLMs (Agora)</a>, 2024</li>
+<li>Starkov and Pidkuiko, <a href="https://github.com/PennyroyalTea/gibberlink">Gibberlink repository</a> and <a href="https://community.openai.com/t/gibberlink-more-efficient-ai-communications/1128907/18">authors&rsquo; FAQ</a>, 2025</li>
+<li>Lewis et al., <a href="https://arxiv.org/abs/1706.05125">Deal or No Deal? End-to-End Learning for Negotiation Dialogues</a>, 2017; <a href="https://www.elektormagazine.com/news/it-was-a-quiet-news-day-at-facebook">Elektor on the media coverage</a></li>
+<li>Lazaridou and Baroni, <a href="https://arxiv.org/abs/2006.02419">Emergent Multi-Agent Communication in the Deep Learning Era</a>, 2020</li>
+<li>Lazaridou et al., <a href="https://arxiv.org/abs/2005.07064">Multi-agent Communication meets Natural Language (language drift taxonomy)</a>, ACL 2020</li>
+<li>Korbak et al., <a href="https://arxiv.org/abs/2507.11473">Chain of Thought Monitorability: A New and Fragile Opportunity for AI Safety</a>, 2025</li>
+<li>Motwani et al., <a href="https://arxiv.org/abs/2402.07510">Secret Collusion among AI Agents: Multi-Agent Deception via Steganography</a>, NeurIPS 2024</li>
+<li>Lee and Tiwari, <a href="https://arxiv.org/abs/2410.07283">Prompt Infection: LLM-to-LLM Prompt Injection within Multi-Agent Systems</a>, 2024</li>
+<li>Schwinn et al., <a href="https://arxiv.org/abs/2402.09063">Soft Prompt Threats: Attacking Safety Alignment through the Embedding Space</a>, NeurIPS 2024</li>
+<li>Morris et al., <a href="https://arxiv.org/abs/2310.06816">Text Embeddings Reveal (Almost) As Much As Text</a>, EMNLP 2023</li>
+<li>Wu et al., <a href="https://www.ndss-symposium.org/ndss-paper/i-know-what-you-asked-prompt-leakage-via-kv-cache-sharing-in-multi-tenant-llm-serving/">I Know What You Asked: Prompt Leakage via KV-Cache Sharing</a>, NDSS 2025</li>
+<li><a href="https://arxiv.org/abs/2409.20002">The Early Bird Catches the Leak: Timing Side Channels in LLM Serving</a>, 2024</li>
+</ul>
+  </div>
+  <footer class="post-foot">
+    <a href="/blog/">&larr; All posts</a>
+  </footer>
+</article>
+<section class="signup" aria-label="Email updates">
+  <div class="signup-text"><strong>Get new posts by email</strong><span>Email updates are coming soon. Until then, follow via <a href="/blog/feed.xml">RSS</a>.</span></div>
+  <form class="signup-form" onsubmit="return false">
+    <input type="email" placeholder="you@example.com" aria-label="Email address" disabled>
+    <button type="submit" disabled>Subscribe</button>
+  </form>
+</section>
+  </main>
+  <footer class="site-foot">&copy; 2026 Arunesh Mishra · <a href="/">arunesh.github.io</a></footer>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-120920911-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-120920911-1');
+  </script>
+</body>
+</html>

@@ -11,5 +11,12 @@
       <pubDate>Sun, 08 Nov 2026 12:00:00 +0000</pubDate>
       <description>How we built an agent that answers questions about hour-long videos with a citation for every claim, and took it from 66% to 84% on LVBench in three weeks — past Gemini&#x27;s own agentic video mode.</description>
     </item>
+    <item>
+      <title>NoProtocol: When AI Models Talk Without a Protocol</title>
+      <link>https://arunesh.github.io/blog/noprotocol/</link>
+      <guid>https://arunesh.github.io/blog/noprotocol/</guid>
+      <pubDate>Tue, 03 Nov 2026 12:00:00 +0000</pubDate>
+      <description>Will AI agents drop human language and talk in binary? Not on their own. But engineers will wire them together for 2–4x speedups, and that removes the text layer almost every oversight tool depends on. Here is the evidence, the risks, and a design that keeps the speed without going dark.</description>
+    </item>
   </channel>
 </rss>
