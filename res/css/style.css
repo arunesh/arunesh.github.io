@@ -143,9 +143,12 @@ a:active {
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: #333;
-    margin: 2em 0 0.8em;
+    margin: 3.2em 0 1em;
     padding-bottom: 0.3em;
     border-bottom: 1px solid #e5e5e5;
+}
+.main + .section, .main ~ .section.other {
+    margin-top: 3em;
 }
 .main > .section-head:first-child {
     margin-top: 0;
