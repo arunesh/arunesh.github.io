@@ -216,13 +216,32 @@ def snapshot():
     return {p: p.stat().st_mtime for p in SRC.rglob("*") if p.is_file()}
 
 
+def port_in_use(port):
+    """True if anything answers on this port over IPv4 or IPv6 (browsers try both for 'localhost')."""
+    import socket
+    for family, host in ((socket.AF_INET, "127.0.0.1"), (socket.AF_INET6, "::1")):
+        try:
+            with socket.socket(family, socket.SOCK_STREAM) as s:
+                s.settimeout(0.3)
+                if s.connect_ex((host, port)) == 0:
+                    return True
+        except OSError:
+            pass
+    return False
+
+
 def serve(port):
     import http.server
     import functools
+    start = port
+    while port_in_use(port):
+        port += 1
+    if port != start:
+        print(f"port {start} is already used by another program; using {port} instead")
     handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(ROOT))
     httpd = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
-    print(f"serving http://localhost:{port}/blog/  (Ctrl+C to stop; rebuilds on save)")
+    print(f"serving http://127.0.0.1:{port}/blog/  (Ctrl+C to stop; rebuilds on save)")
     seen = snapshot()
     try:
         while True:
