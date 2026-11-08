@@ -1,3 +1,22 @@
+⏺ I reorganized the main paragraph of index.html into four clear sections and committed it on a new branch, improve-main-layout. Fonts, blue links and the white background are unchanged. I checked the result
+  with headless Chrome screenshots.
+
+  What changed:
+  - Projects: one block per project (NoProtocol, FastLLM, VideoIndex, CodeWalk), with a bold name, short grey tags (e.g. inference · kernels) and a one-line description. Key numbers are highlighted, like 1.5×
+    faster than vLLM / SGLang. Past projects are now a muted line underneath.
+  - Interests: a row of small labels (Agentic AI, LLMs, Distributed systems, …) followed by one sentence about scale.
+  - Experience highlights: the Wi-Fi location work, the ultrasound API and open1x are now bullets instead of one long paragraph. The 2.5B+ users/day figure is highlighted.
+  - Research: 30+ publications and 52 patents are shown as large numbers with their links, plus the line about ACM conferences.
+
+  Other changes:
+  - I moved the old separate "Open source projects" list into the VideoIndex and CodeWalk entries, so those links now appear only once.
+  - I fixed a few typos ("specificiations", "knoweledge").
+  - The two sections that both had id="other" now have their own ids.
+  - Text width is limited to about 760px so lines are easier to read. On phones, the tags move onto their own line.
+
+  All new styles are added at the end of res/css/style.css. index-old.html also uses that file, but it doesn't use any of the new classes, so it isn't affected. To preview, open index.html locally. I didn't push
+  the branch.
+------------------------------------------------------------------------------------------------------------------------
 ⏺ Fixed and committed on the crumble-animation branch.
 
   What was wrong. The first fall was scheduled as the initial hold plus the idle delay, not the initial hold alone. With the old 2.5 second idle delay that meant a 4 second first fall, which looked close enough to pass. Raising the idle delay to 20 seconds pushed the first fall
