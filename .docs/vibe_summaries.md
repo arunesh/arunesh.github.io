@@ -1,3 +1,36 @@
+ The blog is built and committed on a new branch, blog, which starts from the layout branch. The homepage now has Blog · Resume · GitHub links under your name, and the first post is about VideoIndex. Nothing is pushed yet. I
+  checked each page in headless Chrome screenshots.
+
+  Writing a post
+  1. Add a Markdown file to blog/_src/posts/, e.g. 2026-11-08-videoindex.md, starting with a title, date, summary and tags.
+  2. Run python3 blog/build.py --serve and open http://localhost:8000/blog/. It rebuilds each time you save.
+  3. Commit the .md file together with the generated HTML.
+
+  The build also makes an RSS feed at /blog/feed.xml. blog/README.md explains the extras you can use in a post (figures, stat boxes, callout boxes). GitHub Pages ignores the source folder, so only the finished pages go live.
+
+  Design: light background, Inter for body text and JetBrains Mono for code. Cyan is the only accent: a thin gradient line across the top, a stripe on the signup box, link colour and tag labels.
+
+  Email signup: I'd use Buttondown. It's simple, it's free up to 100 subscribers, and it can email new posts automatically from the RSS feed. The alternatives:
+  - Substack: heavy branding and pulls readers onto its site.
+  - Kit (ConvertKit) or Mailchimp: more marketing features than you need.
+  - Your own Cloudflare Worker storing emails in D1: you own the list, but you'd have to build sending and unsubscribe yourself.
+
+  The box is already at the top of the blog and under each post. To turn it on, put your Buttondown username in blog/_src/site.json and rebuild. Until then it shows "coming soon" with an RSS link and doesn't submit anywhere.
+
+  The VideoIndex post (about 11 minutes to read) is drawn from the Oct 4 improvements report and the engineering doc. It covers:
+  - the architecture, with a new diagram
+  - the indexing pipeline, hybrid search, and the agent loop with its tools
+  - how you measure, including noise and paired comparisons
+  - results against Gemini's agentic video mode (84.1% vs 80.8% on LVBench, 78.1% vs 76.5% on MINERVA), with a chart
+  - the six changes that worked, the ones that didn't, and lessons
+
+  I left out hostnames, file paths, keys, branch names and anything about security incidents.
+
+  Please check these before you publish:
+  - Numbers and model names. They come straight from internal reports, so confirm you're happy making them public.
+  - Live video. The "What's next" section mentions the live-video work, which currently lives in private repos. Cut that line if it isn't public yet.
+  - "Open source" label. The project notes say the core VideoIndex repo went private in October, but your homepage still marks VideoIndex and CodeWalk as "(open source)".
+------------------------------------------------------------------------------------------------------------------------
 ⏺ I reorganized the main paragraph of index.html into four clear sections and committed it on a new branch, improve-main-layout. Fonts, blue links and the white background are unchanged. I checked the result
   with headless Chrome screenshots.
 
