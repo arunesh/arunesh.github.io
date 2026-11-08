@@ -1,1 +1,5 @@
 theme: jekyll-theme-cayman
+# Blog sources and build script are not part of the published site (see blog/README.md).
+exclude:
+  - blog/build.py
+  - blog/README.md

@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VideoIndex: index once, ask many times · Arunesh Mishra · Blog</title>
+  <meta name="description" content="How we built an agent that answers questions about hour-long videos with a citation for every claim, and took it from 66% to 84% on LVBench in three weeks — past Gemini&#x27;s own agentic video mode.">
+  <meta name="author" content="Arunesh Mishra">
+  <link rel="canonical" href="https://arunesh.github.io/blog/videoindex/">
+  <meta property="og:title" content="VideoIndex: index once, ask many times · Arunesh Mishra · Blog">
+  <meta property="og:description" content="How we built an agent that answers questions about hour-long videos with a citation for every claim, and took it from 66% to 84% on LVBench in three weeks — past Gemini&#x27;s own agentic video mode.">
+  <meta property="og:url" content="https://arunesh.github.io/blog/videoindex/">
+  <link rel="alternate" type="application/rss+xml" title="Arunesh Mishra · Blog" href="/blog/feed.xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="/blog/assets/blog.css" rel="stylesheet">
+</head>
+<body>
+  <div class="accent-bar" aria-hidden="true"></div>
+  <nav class="site-nav">
+    <a class="home" href="/">Arunesh Mishra</a>
+    <span class="nav-links"><a href="/blog/">Blog</a><a href="/blog/feed.xml">RSS</a></span>
+  </nav>
+  <main class="wrap">
+<article class="post">
+  <header class="post-head">
+    <p class="meta"><time datetime="2026-11-08">Nov 8, 2026</time> · 11 min read</p>
+    <h1>VideoIndex: index once, ask many times</h1>
+    <p class="lede">How we built an agent that answers questions about hour-long videos with a citation for every claim, and took it from 66% to 84% on LVBench in three weeks — past Gemini&#x27;s own agentic video mode.</p>
+    <div class="tags"><span class="tag">agentic AI</span><span class="tag">video understanding</span><span class="tag">evaluation</span><span class="tag">Rust</span></div>
+  </header>
+  <details class="toc"><summary>Contents</summary><div class="toc">
+<ul>
+<li><a href="#two-ideas">Two ideas</a></li>
+<li><a href="#indexing-from-pixels-and-audio-to-searchable-facts">Indexing: from pixels and audio to searchable facts</a></li>
+<li><a href="#retrieval-finding-where-to-look">Retrieval: finding where to look</a></li>
+<li><a href="#the-agent-loop">The agent loop</a></li>
+<li><a href="#how-we-measure">How we measure</a></li>
+<li><a href="#results">Results</a></li>
+<li><a href="#what-moved-the-needle">What moved the needle</a></li>
+<li><a href="#what-did-not">What did not</a></li>
+<li><a href="#lessons">Lessons</a></li>
+<li><a href="#whats-next">What&rsquo;s next</a></li>
+</ul>
+</div>
+</details>
+  <div class="prose">
+<p>Ask a question about a one-hour lecture, a conference talk or a playlist of thirty talks, and get an answer back in a few seconds. Every claim comes with a citation, a video id and a time range, so a player can jump straight to that moment. That is what <a href="https://videoindex.org">VideoIndex</a> does. This post covers how it is built, how we measure it, and what moved the numbers in three weeks of evaluation-driven work.</p>
+<div class="stats">
+  <div class="stat"><b>84.1%</b><span>LVBench (hour-long video), up from 66.2%</span></div>
+  <div class="stat"><b>78.1%</b><span>MINERVA, up from 51.9%</span></div>
+  <div class="stat"><b>93%</b><span>library Q&amp;A quality at 2.6× lower cost than the reference</span></div>
+  <div class="stat"><b>6 / ~20</b><span>changes kept / experiments that measured no gain</span></div>
+</div>
+
+<p>The reference throughout is Gemini&rsquo;s agentic video mode reading the raw files, which scores 80.8% and 76.5% on the same samples. VideoIndex now beats it on both.</p>
+<h2 id="two-ideas">Two ideas<a class="anchor" href="#two-ideas" title="Permanent link">#</a></h2>
+<p><strong>Index once, ask many times.</strong> Watching a video with a large multimodal model every time someone asks a question is slow and expensive. VideoIndex does the expensive perception work once and stores what it finds: speech, on-screen text, what frames look like, shot boundaries, and short descriptions of what is visible. Questions are then answered by searching that store. Indexing an hour costs cents of GPU time, and a question costs a few cents of model calls.</p>
+<p><strong>An agent that cites the moment.</strong> A language model answers by calling <strong>tools</strong> over the index: search here, read the transcript there, look at these frames. Every factual claim must point at a stored fact with a time range. The model is not trusted to remember the video. It is made to look.</p>
+<p>The engine is a Rust workspace (decode, perception, index, query, agent and server crates) with Python and Node bindings, a <code>vidx</code> CLI, and an HTTP server with SSE streaming and MCP. The <a href="https://videoindex.app">chat demo</a> runs on the same SDK.</p>
+<figure>
+  <img src="/blog/assets/videoindex/architecture.svg" alt="Architecture diagram: Source, Decode, then Speech, Frames and Fine-pass branches feed the Index. Below, a Question goes to the Agent loop, which calls read-only tools over the index and produces an answer with citations." width="760" height="460">
+  <figcaption>Two halves. Indexing runs once per video; the agent loop runs per question and only ever reads the index (and, for close looks, the media).</figcaption>
+</figure>
+
+<h2 id="indexing-from-pixels-and-audio-to-searchable-facts">Indexing: from pixels and audio to searchable facts<a class="anchor" href="#indexing-from-pixels-and-audio-to-searchable-facts" title="Permanent link">#</a></h2>
+<p>Indexing is a graph of <strong>operators</strong>. Each is one processing step with typed inputs and outputs, a version and a cost estimate. A <strong>policy</strong> names which operators run. The scheduler builds the dependency graph from the declared inputs and outputs and runs the operators as concurrent tasks with bounded channels between them, so an hour of frames never sits in memory. Decoding runs libav in a sandboxed worker process, so a malformed file cannot take down the indexer. Frames cross into the main process through shared memory with a fixed number of slots, which also gives the pipeline its backpressure.</p>
+<p><strong>Audio.</strong> Subtitles are imported directly when the source has them. Otherwise Silero VAD finds the speech in one batched pass, and only speech goes to Whisper large-v3, so an hour of lecture with forty minutes of talking costs forty minutes of ASR. Word timings split the output into transcript spans a few seconds long.</p>
+<p><strong>Video.</strong> Frames are sampled at 1 fps. Shot boundaries come from an HSV-histogram distance plus an edge-change ratio with an adaptive threshold. A 64-bit perceptual hash collapses near-identical consecutive frames: a slide on screen for two minutes costs one embedding and one OCR pass, not 120. Distinct frames get a SigLIP embedding, which lives in the same space as text, so &ldquo;slide with an architecture diagram&rdquo; can match pixels directly. RapidOCR reads on-screen text: slides, code, scoreboards.</p>
+<p><strong>Fine pass (optional, paid).</strong> Scenes, chapters, entities, and, as of October, a <strong>per-shot description</strong> from a vision model. Each one uses a compact fixed schema (people, objects with counts, actions, on-screen text, a one-sentence summary) and costs about $0.003 per shot, or $0.45–0.82 per hour of video.</p>
+<p>Every stored row carries <strong>provenance</strong>: which operator, model version and prompt hash produced it. Re-running a job plans each stage as <em>skip</em>, <em>replay</em> or <em>run</em>, so adding a fine pass to an existing index never touches the pixels again.</p>
+<p>On a 30-video, 36.6-hour library, coarse indexing ran at about <strong>7× real time</strong> overall on a CPU ONNX build with Whisper on the GPU. Camera-heavy talks index at 20× or better. Slide decks that change every few seconds are the slow case, because OCR dominates.</p>
+<h2 id="retrieval-finding-where-to-look">Retrieval: finding where to look<a class="anchor" href="#retrieval-finding-where-to-look" title="Permanent link">#</a></h2>
+<p><code>search</code> runs three retrievers in parallel and fuses them:</p>
+<ol>
+<li><strong>BM25</strong> (SQLite FTS5) over transcript, OCR, descriptions and segment summaries.</li>
+<li><strong>Text-vector</strong> search over the same rows (bge embeddings, ~30 s windows with overlap).</li>
+<li><strong>Frame-vector</strong> search using SigLIP&rsquo;s text tower, so words match frames.</li>
+</ol>
+<p>The three lists are combined with <strong>reciprocal rank fusion</strong>, score = Σ 1/(k + rank), then grouped into scenes. A moment where the transcript, the slide text and the description all agree outranks a lucky keyword match. Hits are capped per video, so a library-wide query spreads across talks instead of being filled by the one talk that says the word most.</p>
+<p>Ranked retrieval is a <em>sample</em>, though. It can never prove that no other video mentions a term. For &ldquo;which videos mention X&rdquo;, the index has a second path: an exhaustive FTS5 phrase scan grouped by video (<code>find_mentions</code>, <code>count_mentions</code>). It is deterministic and takes milliseconds.</p>
+<h2 id="the-agent-loop">The agent loop<a class="anchor" href="#the-agent-loop" title="Permanent link">#</a></h2>
+<p>A question runs under a <strong>budget</strong>: tool calls, dollars, tokens and wall-clock time. The loop is a plain conversation:</p>
+<ol>
+<li>The system prompt sets the rules (which tool for which question shape, cite everything, never invent) and lists the videos.</li>
+<li>The model either answers or asks for one or more tool calls. Calls in the same turn run concurrently.</li>
+<li>Results go back into the conversation. Repeat.</li>
+<li>Citation markers such as <code>[[cite:VIDEO:T0-T1]]</code> are parsed out of the stream and emitted as typed citation events.</li>
+</ol>
+<p>The tool-call cap is a hard limit. When it is reached, the tools are withheld and the model is told to answer from what it has seen and say what it could not check.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>What it does</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>search</code></td>
+<td>hybrid retrieval, ranked hits with evidence snippets</td>
+<td>~2 s</td>
+</tr>
+<tr>
+<td><code>find_mentions</code>, <code>count_mentions</code></td>
+<td>exhaustive term scan, per video or aggregated</td>
+<td>ms</td>
+</tr>
+<tr>
+<td><code>get_transcript</code>, <code>get_ocr</code>, <code>get_descriptions</code></td>
+<td>timed text for up to three windows already located</td>
+<td>ms</td>
+</tr>
+<tr>
+<td><code>timeline</code></td>
+<td>chapters, scenes or shots with summaries</td>
+<td>ms</td>
+</tr>
+<tr>
+<td><code>view</code></td>
+<td>decode a window into a labelled 16-frame grid plus its transcript</td>
+<td>~0.5 s + image tokens</td>
+</tr>
+<tr>
+<td><code>zoom</code></td>
+<td>one frame at source resolution, optionally an enlarged region</td>
+<td>~0.3 s + image tokens</td>
+</tr>
+</tbody>
+</table>
+<p>A worked example. <em>&ldquo;Which speakers mention Kaggle, and what do they say?&rdquo;</em>, asked over the 30-talk library. Turn 1: <code>find_mentions(["Kaggle"])</code> returns 2 of 30 videos and 8 hits in 4 ms. Turn 2: two transcript reads in parallel. Turn 3: the answer, citing five moments. That took three tool calls, 12.6 s and $0.086.</p>
+<h2 id="how-we-measure">How we measure<a class="anchor" href="#how-we-measure" title="Permanent link">#</a></h2>
+<p>Evaluation decided every change, and most of the work was making the numbers readable.</p>
+<ul>
+<li><strong>LVBench</strong> (hour-long videos) and <strong>MINERVA</strong> (long videos, 13 task types) are public multiple-choice benchmarks. We run fixed 25% stratified samples, 340 and 310 questions, at $16–33 per run.</li>
+<li><strong>The library set</strong> is 28 of our own questions over 30 talks: which videos mention X, moments about a topic, cross-video comparisons, summaries, and one question nothing matches. A judge model turns each free-text answer into structure (videos named, timestamps, facts). Scoring is deterministic after that.</li>
+<li><strong>The reference</strong> is Gemini agentic video over the raw files, run once and cached. The baselines are retrieval-only and 32 uniformly sampled frames.</li>
+</ul>
+<blockquote>
+<p><strong>Noise first.</strong> Between two runs of the <em>same</em> agent, 37–47 of 310 MINERVA questions flip, which is about ±2 points. Almost every experiment moved the headline by less than that.</p>
+</blockquote>
+<p>That forced four habits:</p>
+<ul>
+<li><strong>Paired diffs, not percentages.</strong> For each comparison, count the questions fixed and the questions broken on the same question ids, and apply McNemar&rsquo;s exact test. The merge bar, written down before any run, is <strong>fixed − broken ≥ +5 on 310 questions, plus a mechanism reason</strong>.</li>
+<li><strong>Bands, not single baselines.</strong> A subset&rsquo;s baseline is itself one draw, so we print its count under every comparable run and read a check against that band.</li>
+<li><strong>Split on the mechanism.</strong> Models reach for new tools on hard questions, so &ldquo;with the tool&rdquo; always scores lower than &ldquo;without&rdquo;. Read the paired diff on the rows where the tool was actually used.</li>
+<li><strong>One switch, one branch, one full run.</strong> Small slices measure nothing: a 120-question slice showed zero gap between two agents that differ by two points overall.</li>
+</ul>
+<h2 id="results">Results<a class="anchor" href="#results" title="Permanent link">#</a></h2>
+<figure>
+  <img src="/blog/assets/videoindex/results.svg" alt="Bar chart. LVBench: 66.2% on Sep 14, 84.1% on Oct 4, reference 80.8%. MINERVA: 51.9%, 78.1%, reference 76.5%. Library set quality: 79%, 93% at $0.16 per question, reference 93% at $0.41." width="760" height="420">
+  <figcaption>Same questions, same videos, same scoring for every bar. The reference run is cached and re-scored on the same samples.</figcaption>
+</figure>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th>LVBench</th>
+<th>MINERVA</th>
+<th>Library set</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sep 14 agent (Claude Sonnet 5, 6 tool calls)</td>
+<td>66.2%</td>
+<td>51.9%</td>
+<td>79%</td>
+</tr>
+<tr>
+<td>Gemini agentic video (reference)</td>
+<td>80.8%</td>
+<td>76.5%</td>
+<td>93% @ $0.41/q</td>
+</tr>
+<tr>
+<td><strong>Oct 4 agent</strong> (Gemini 3.8 Flash, 20 calls, $0.30 cap)</td>
+<td><strong>84.1%</strong> @ $0.07/q, 17 s p50</td>
+<td><strong>78.1%</strong> @ $0.11/q, 25 s p50</td>
+<td><strong>93%</strong> @ $0.16/q</td>
+</tr>
+</tbody>
+</table>
+<p>On the single-video benchmarks the reference is slightly cheaper per question ($0.05–0.06). On library questions, the kind it was not built for, VideoIndex reaches the same quality at 2.6× lower cost and 1.6× lower median latency. Retrieval alone scores 48% on the library set; the agent adds the rest.</p>
+<h2 id="what-moved-the-needle">What moved the needle<a class="anchor" href="#what-moved-the-needle" title="Permanent link">#</a></h2>
+<p>Six changes carried the gain, in the order they landed.</p>
+<ol>
+<li><strong>Remove the cap the agent was hitting.</strong> Half the questions ended at the 6-call cap and scored 40–60% there, against 90%+ for questions that finished on their own. Raising the cap to 12 calls took LVBench from 77% to 82% and MINERVA from 67% to 72%. The biggest single lever was a config value.</li>
+<li><strong>Change the reader.</strong> Gemini 3.8 Flash against Claude Sonnet 5, with the same tools on the same samples: +10 points on both benchmarks at a quarter of the cost. One flag, one run.</li>
+<li><strong>Exhaustive tools for collection questions.</strong> Library misses were almost all recall: the agent concluded &ldquo;no other video mentions X&rdquo; from a ranked sample. With <code>find_mentions</code> and <code>count_mentions</code>, plus a prompt rule routing those question shapes to them, quality went from 79% to 93% and recall to 100%.</li>
+<li><strong>Tools that read where the model has already looked.</strong> A redesign added multi-window forms (read six ranges in one call) and lost 3 points. Splitting the run files showed the model was using six-window text reads as a dragnet. Capping them at three windows of at least 4,000 characters, described as &ldquo;read ranges you&rsquo;ve already located&rdquo;, recovered the accuracy with 24% lower latency. <strong>A tool&rsquo;s description is part of its behaviour.</strong></li>
+<li><strong>A look at source resolution.</strong> Analysing failures by cause put 38 of 99 MINERVA misses on fine detail: price tags, digits, signs, all unreadable in a 448 px grid tile. <code>zoom</code> returns one frame at full size with an optional enlarged region. MINERVA went from 72.9% to <strong>78.4%</strong> (24 fixed, 7 broken, p &lt; 0.005) for +8% cost. It only worked together with a budget change: with the old 120k-token budget, the extra looks ran out of room.</li>
+<li><strong>Text about what is visible, at index time.</strong> Transcript and OCR cover what is said and written, never what is on screen. Per-shot descriptions added that text. On LVBench they moved three draws to 288, 294 and 286 correct, against 279–284 without them. On MINERVA&rsquo;s shorter videos, where the agent already looks at the right moment, they read flat.</li>
+</ol>
+<h2 id="what-did-not">What did not<a class="anchor" href="#what-did-not" title="Permanent link">#</a></h2>
+<p>About twenty experiments missed the bar. Some of them:</p>
+<ul>
+<li><strong>More budget alone.</strong> Stepping the unchanged agent up four budget levels read 72.6 / 72.9 / 73.2 / 72.9%. Past the first raise, the loop just takes more looks at the same pixels.</li>
+<li><strong>History compaction.</strong> Replacing old frame grids with placeholders freed tokens, and the model spent them on more looks of the same kind.</li>
+<li><strong>A whole-video thumbnail grid</strong> and <strong>a native video clip with sound.</strong> The grid was too coarse to answer anything by itself and ate the token budget. The clip helped audio questions (1 → 3 of 5) but missed the bar by one question, twice.</li>
+<li><strong>Denser looks at motion, five ways</strong>, up to a loop-enforced 4 fps tally. &ldquo;How many times did she pinch the yarn&rdquo; stayed wrong with every frame in front of the model. This is a perception limit, and the reference misses 12 of the same 18 questions.</li>
+<li><strong>Prompt-line procedures.</strong> &ldquo;Call scan first&rdquo;, &ldquo;count twice&rdquo;, &ldquo;tally per piece&rdquo;: each was followed 40–60% of the time and read flat.</li>
+<li><strong>Exact instruments offered as new tools.</strong> An OCR reader and an object detector were picked up on 3–4% of eligible questions. Attached to <code>zoom</code> results instead, they reached the model and changed nothing.</li>
+<li><strong>Escalating to a stronger model at the cap.</strong> A Pro-class second pass from scratch discards the evidence the first pass bought, and runs out of budget on the same questions.</li>
+</ul>
+<div class="callout">
+<p><strong>The pattern.</strong> This chat model follows procedures loosely, rarely picks up a tool it has to choose to call, and does not improve by looking harder at the same pixels. What worked did one of three things: removed a limit it was hitting, changed what it could <em>see</em>, or changed the model itself.</p>
+</div>
+<h2 id="lessons">Lessons<a class="anchor" href="#lessons" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Find the binding constraint before building anything.</strong> Ours was a config value, then a token budget, then pixel resolution.</li>
+<li><strong>Design levers as loop actions or as changes to what existing calls return</strong>, not as new tools the model has to decide to call.</li>
+<li><strong>Reach is not movement.</strong> A signal the model sees, such as audio tags, a stronger frame encoder, or shot text on short videos, often changes nothing. Measure the two separately.</li>
+<li><strong>Measure every change on every benchmark it touches.</strong> A prompt line read +6 on MINERVA and −6 on LVBench, and was reverted the same night.</li>
+<li><strong>Record the arguments of every tool call in the run file.</strong> Twice a hypothesis was untestable until a field was added, and splitting existing runs found both regressions without a rerun.</li>
+</ul>
+<h2 id="whats-next">What&rsquo;s next<a class="anchor" href="#whats-next" title="Permanent link">#</a></h2>
+<p>The remaining MINERVA misses are mostly fine detail and repeated-action counting. The next lever there is probably a different signal, such as pose keypoints or frame-difference energy, rather than another look. The bigger thread is <strong>live video</strong>: indexing streams while they happen, answering with &ldquo;now&rdquo; in mind, and joining calls.</p>
+<p>Try the demo at <a href="https://videoindex.app">videoindex.app</a> or read more at <a href="https://videoindex.org">videoindex.org</a>.</p>
+  </div>
+  <footer class="post-foot">
+    <a href="/blog/">&larr; All posts</a>
+  </footer>
+</article>
+<section class="signup" aria-label="Email updates">
+  <div class="signup-text"><strong>Get new posts by email</strong><span>Email updates are coming soon. Until then, follow via <a href="/blog/feed.xml">RSS</a>.</span></div>
+  <form class="signup-form" onsubmit="return false">
+    <input type="email" placeholder="you@example.com" aria-label="Email address" disabled>
+    <button type="submit" disabled>Subscribe</button>
+  </form>
+</section>
+  </main>
+  <footer class="site-foot">&copy; 2026 Arunesh Mishra · <a href="/">arunesh.github.io</a></footer>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-120920911-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-120920911-1');
+  </script>
+</body>
+</html>

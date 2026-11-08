@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>$title</title>
+  <meta name="description" content="$description">
+  <meta name="author" content="$author">
+  <link rel="canonical" href="$canonical">
+  <meta property="og:title" content="$title">
+  <meta property="og:description" content="$description">
+  <meta property="og:url" content="$canonical">
+  <link rel="alternate" type="application/rss+xml" title="$site_title" href="/blog/feed.xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="/blog/assets/blog.css" rel="stylesheet">
+</head>
+<body>
+  <div class="accent-bar" aria-hidden="true"></div>
+  <nav class="site-nav">
+    <a class="home" href="/">Arunesh Mishra</a>
+    <span class="nav-links"><a href="/blog/">Blog</a><a href="/blog/feed.xml">RSS</a></span>
+  </nav>
+  <main class="wrap">
+$body
+  </main>
+  <footer class="site-foot">&copy; $year $author · <a href="/">arunesh.github.io</a></footer>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-120920911-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-120920911-1');
+  </script>
+</body>
+</html>

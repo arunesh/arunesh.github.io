@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Arunesh Mishra · Blog</title>
+    <link>https://arunesh.github.io/blog/</link>
+    <description>Notes on agentic AI, LLM systems, evaluation and distributed systems.</description>
+    <item>
+      <title>VideoIndex: index once, ask many times</title>
+      <link>https://arunesh.github.io/blog/videoindex/</link>
+      <guid>https://arunesh.github.io/blog/videoindex/</guid>
+      <pubDate>Sun, 08 Nov 2026 12:00:00 +0000</pubDate>
+      <description>How we built an agent that answers questions about hour-long videos with a citation for every claim, and took it from 66% to 84% on LVBench in three weeks — past Gemini&#x27;s own agentic video mode.</description>
+    </item>
+  </channel>
+</rss>

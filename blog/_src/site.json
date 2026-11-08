@@ -1,0 +1,10 @@
+{
+  "title": "Arunesh Mishra · Blog",
+  "description": "Notes on agentic AI, LLM systems, evaluation and distributed systems.",
+  "author": "Arunesh Mishra",
+  "site_url": "https://arunesh.github.io",
+  "newsletter": {
+    "buttondown_username": "",
+    "blurb": "New posts by email, a few times a year. No spam, unsubscribe anytime."
+  }
+}

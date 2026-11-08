@@ -232,3 +232,9 @@ a:active {
     .main { max-width: 100%; }
     .project-tags { display: block; margin-left: 0; }
 }
+
+/* Header links (Blog, Resume, ...) under the bio line */
+.header-links a {
+    margin-right: 18px;
+    font-weight: 600;
+}
