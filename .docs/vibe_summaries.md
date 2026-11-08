@@ -1,3 +1,20 @@
+ I've added the NoProtocol article to the blog and built it. It's live locally at /blog/noprotocol/ and appears on the blog index and RSS feed. I haven't committed or pushed anything.
+
+  What's in it:
+  - The post: blog/_src/posts/2026-11-03-noprotocol.md. All sections, both tables, the inline links and the full Sources list come over word for word. I dropped the doc's title and byline line, because the blog
+    template prints the title, date and tags itself.
+  - The diagram: the export left out the doc's architecture diagram, so I rebuilt it as blog/assets/noprotocol/architecture.svg. It uses the same colours and fonts as the VideoIndex figures, and its caption is the
+    doc's caption.
+  - Front matter I wrote: a summary for the index and feed, tags (agentic AI, AI safety, security, multi-agent systems) and a table of contents. Edit any of these as you like.
+
+  One decision for you: the post is dated Nov 3, 2026, the date on the doc, so it sits below the VideoIndex post (Nov 8). If you want it at the top, rename the file to 2026-11-08-noprotocol.md, change date: to
+  match, and rebuild.
+
+  To preview, run python3 blog/build.py --serve. I can commit and push when you're ready.
+
+✻ Brewed for 2m 34s · done 1:20 PM
+
+------------------------------------------------------------------------------------------------------------------------
  The blog is built and committed on a new branch, blog, which starts from the layout branch. The homepage now has Blog · Resume · GitHub links under your name, and the first post is about VideoIndex. Nothing is pushed yet. I
   checked each page in headless Chrome screenshots.
 
